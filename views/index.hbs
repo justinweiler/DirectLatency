@@ -1,0 +1,141 @@
+<!-- ASCI prequal tag-->
+<script type="text/javascript" language="JavaScript">
+    (function ()
+    {
+        var cb       = new Date().getTime();
+        var asiPqTag = false;
+        var e        = document.createElement("script");
+        var src      = "http://pq-direct.revsci.net/pql?placementIdList=8VaWR8&cb=" + cb;
+        var s        = document.getElementsByTagName("script")[0];
+        e.async      = true;
+        e.src        = src;
+        s.parentNode.insertBefore(e, s);
+    })();
+
+    // JRW metrics (1 in 100 sampling)
+    //if (Math.floor(Math.random() * 100) == 50)
+    {
+        setTimeout(
+            function ()
+            {
+                var post = {source: 'Canary-M'};
+
+                if (typeof asiPlacements != "undefined")
+                {
+                    // grab placement
+                    for (asiPlacement in asiPlacements)
+                    {
+                        asiBlob = asiPlacements[asiPlacement].blob;
+
+                        if (typeof asiBlob != "undefined")
+                        {
+                            post.bid = true;
+                            post.blob = asiBlob;
+                        }
+                        break;
+                    }
+
+                    if (post.bid == undefined)
+                    {
+                        post.nobid = true;
+                    }
+                }
+
+                if (post.bid == undefined && post.nobid == undefined)
+                {
+                    post.failed = true;
+                }
+
+                var resourceList = window.performance.getEntries();
+
+                for (var i = 0; i < resourceList.length; i++)
+                {
+                    if (~resourceList[i].name.indexOf('pq-direct.revsci.net'))
+                    {
+                        post.pqlatency = resourceList[i].duration;
+                    }
+                    else if (~resourceList[i].name.indexOf('imp.revsci.net'))
+                    {
+                        if (post.implatency == undefined)
+                        {
+                            post.implatency = [];
+                        }
+
+                        post.implatency.push(resourceList[i].duration);
+                    }
+                }
+
+                var http    = new XMLHttpRequest();
+                var postStr = JSON.stringify(post);
+                http.open("POST", "http://localhost:3000/cnc", true);
+                http.setRequestHeader("Content-type", "application/json");
+                http.send(postStr);
+            },
+            1000
+        );
+    }
+</script>
+
+<!-- Get ad after everything is loaded -->
+<script type="text/javascript" language="JavaScript">
+    window.onload = function ()
+    {
+        if (typeof asiPlacements != "undefined")
+        {
+            // grab placement
+            for (asiPlacement in asiPlacements)
+            {
+                asiBlob = asiPlacements[asiPlacement].blob;
+                break;
+            }
+
+            if (typeof asiPlacement != "undefined")
+            {
+                // pick any ad group
+                for (var key in asiPlacements[asiPlacement].data)
+                {
+                    asiAdGroup = asiPlacements[asiPlacement].data[key].key;
+                    break;
+                }
+
+                if (typeof asiAdGroup != "undefined" && typeof asiBlob != "undefined")
+                {
+                    var cb  = new Date().getTime();
+                    var url = 'http://' + asiAdserver +
+                            '/rtbads/pq?adgroup=' + asiAdGroup +
+                            '&blob=' + asiBlob +
+                            '&placement=' + asiPlacement +
+                            '&cachebuster=' + cb +
+                            '&click=&mode=h';
+
+                    // set frame src to the ad
+                    var ifr = document.getElementById("ifr");
+                    ifr.src = url;
+
+                    // display success
+                    var tx       = document.getElementById("tx");
+                    tx.innerText = 'Transaction BID: ' + asiBlob;
+                }
+                else
+                {
+                    // display locked
+                    var tx       = document.getElementById("tx");
+                    tx.innerText = 'Transaction NOBID';
+                }
+            }
+        }
+
+        if (typeof asiPlacement == "undefined")
+        {
+            // display locked
+            var tx       = document.getElementById("tx");
+            tx.innerText = 'Transaction FAILED';
+        }
+    }
+</script>
+
+<h1>{{title}}</h1>
+<label id="tx">NOTRENDERED</label><br/>
+<iframe id="ifr" width="300" height="250" marginwidth="0" marginheight="0" hspace="0" vspace="0" frameborder="0"
+        scrolling="no" bordercolor="#000000"/>
+

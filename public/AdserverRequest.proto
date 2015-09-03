@@ -1,0 +1,4 @@
+message AdserverRequest
+{
+    optional string transaction_id = 1;
+}

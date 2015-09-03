@@ -1,0 +1,154 @@
+<!-- ASCI prequal tag-->
+<script type="text/javascript" language="JavaScript">
+    (function ()
+    {
+        var cb       = new Date().getTime();
+        var asiPqTag = false;
+        var e        = document.createElement("script");
+        var src      = "http://pq-direct.revsci.net/pql?placementIdList=8VaWR8&cb=" + cb;
+        var s        = document.getElementsByTagName("script")[0];
+
+        e.onload =
+            function ()
+            {
+                asiPreQualEnd = Date.now();
+            };
+
+        asiPreQualStart = Date.now();
+
+        e.src = src;
+        s.parentNode.insertBefore(e, s);
+    })();
+</script>
+
+<!-- Get ad after everything is loaded -->
+<script type="text/javascript" language="JavaScript">
+    function postBackMetrics(post, callback)
+    {
+        post.source = 'Canary-P';
+        var http    = new XMLHttpRequest();
+        var postStr = JSON.stringify(post);
+        http.open("POST", "http://localhost:3000/cnc", true);
+        http.setRequestHeader("Content-type", "application/json");
+        http.timeout = 1000;
+        http.onload = callback;
+        http.ontimeout = function(){throw 'Metrics post back timeout'};
+        http.send(postStr);
+    }
+
+    function declareDone()
+    {
+        var lbl = document.createElement("label");
+        lbl.id = 'testdone';
+        document.body.appendChild(lbl);
+    }
+
+    window.onload = function ()
+    {
+        if (typeof asiPlacements != "undefined")
+        {
+            // grab placement
+            for (asiPlacement in asiPlacements)
+            {
+                asiBlob = asiPlacements[asiPlacement].blob;
+                break;
+            }
+
+            if (typeof asiPlacement != "undefined")
+            {
+                // pick any ad group
+                for (var key in asiPlacements[asiPlacement].data)
+                {
+                    asiAdGroup = asiPlacements[asiPlacement].data[key].key;
+                    break;
+                }
+
+                if (typeof asiAdGroup != "undefined" && typeof asiBlob != "undefined")
+                {
+                    var cb  = new Date().getTime();
+                    var url = 'http://' + asiAdserver +
+                            '/rtbads/pq?adgroup=' + asiAdGroup +
+                            '&blob=' + asiBlob +
+                            '&placement=' + asiPlacement +
+                            '&cachebuster=' + cb +
+                            '&click=&mode=h';
+
+                    // set frame src to the ad
+                    var ifr = document.getElementById("ifr");
+                    asiImpStart = Date.now();
+                    ifr.onload =
+                            function()
+                            {
+                                asiImpEnd = Date.now();
+
+                                var post =
+                                    {
+                                        bid:        true,
+                                        pqlatency:  asiPreQualEnd - asiPreQualStart,
+                                        implatency: [asiImpEnd - asiImpStart],
+                                        blob:       asiBlob
+                                    };
+
+                                postBackMetrics(
+                                        post,
+                                        function()
+                                        {
+                                            // display success
+                                            var tx       = document.getElementById("tx");
+                                            tx.innerText = 'Transaction BID: ' + asiBlob;
+                                            declareDone();
+                                        }
+                                );
+                            };
+                    ifr.onerror = ifr.onload;
+                    ifr.src = url;
+                }
+                else
+                {
+                    var post =
+                        {
+                            nobid:      true,
+                            pqlatency:  asiPreQualEnd - asiPreQualStart
+                        };
+
+                    postBackMetrics(
+                            post,
+                            function()
+                            {
+                                // display locked
+                                var tx       = document.getElementById("tx");
+                                tx.innerText = 'Transaction NOBID';
+                                declareDone();
+                            }
+                    );
+                }
+            }
+        }
+
+        if (typeof asiPlacement == "undefined")
+        {
+            var post =
+                {
+                    failed:     true,
+                    pqlatency:  asiPreQualEnd - asiPreQualStart
+                };
+
+            postBackMetrics(
+                    post,
+                    function()
+                    {
+                        // display locked
+                        var tx       = document.getElementById("tx");
+                        tx.innerText = 'Transaction FAILED';
+                        declareDone();
+                    }
+            );
+        }
+    }
+</script>
+
+<h1>{{title}}</h1>
+<label id="tx">NOTRENDERED</label><br/>
+<iframe id="ifr" width="300" height="250" marginwidth="0" marginheight="0" hspace="0" vspace="0" frameborder="0"
+        scrolling="no" bordercolor="#000000"/>
+

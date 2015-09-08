@@ -136,15 +136,17 @@ router.route('/')
                 var latency = req.body.implatency[i];
 
                 tasks.push(
-                    function (callback)
-                    {
-                        sample(
-                            req.body.source + ':imp',
-                            latency,
-                            req.body.blob,
-                            callback
-                        );
-                    }
+                    (function createTask(latency){
+                        return function (callback)
+                        {
+                            sample(
+                                req.body.source + ':imp',
+                                latency,
+                                req.body.blob,
+                                callback
+                            );
+                        }
+                    })(latency)
                 );
             }
         }

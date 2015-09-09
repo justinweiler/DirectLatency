@@ -4,6 +4,8 @@
 var system      = require('system');
 var fs          = require('fs');
 var async       = require('./async.js');
+var config      = require('./config.js');
+
 var i           = 0;
 var id          = system.args[1];
 var end         = system.args[2];
@@ -14,8 +16,8 @@ var timeout     = 0;
 var statusFail  = 0;
 var bid         = 0;
 
-var cncURL      = 'http://localhost:3000/cnc';
-var testPageURL = 'http://localhost:3000/ph';
+var cncURL      = config.url + '/cnc';
+var testPageURL = config.url + '/ph';
 
 phantom.onError = function(msg)
 {

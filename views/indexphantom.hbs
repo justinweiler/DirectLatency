@@ -32,7 +32,6 @@
         http.setRequestHeader("Content-type", "application/json");
         http.timeout = 1000;
         http.onload = callback;
-        http.ontimeout = function(){throw 'Metrics post back timeout'};
         http.send(postStr);
     }
 
@@ -67,59 +66,70 @@
                 {
                     var cb  = new Date().getTime();
                     var url = 'http://' + asiAdserver +
-                            '/rtbads/pq?adgroup=' + asiAdGroup +
-                            '&blob=' + asiBlob +
-                            '&placement=' + asiPlacement +
-                            '&cachebuster=' + cb +
-                            '&click=&mode=h';
+                        '/rtbads/pq?adgroup=' + asiAdGroup +
+                        '&blob=' + asiBlob +
+                        '&placement=' + asiPlacement +
+                        '&cachebuster=' + cb +
+                        '&click=&mode=h';
 
                     // set frame src to the ad
                     var ifr = document.getElementById("ifr");
                     asiImpStart = Date.now();
+
                     ifr.onload =
-                            function()
+                        function()
+                        {
+                            asiImpEnd = Date.now();
+
+                            var post =
+                                {
+                                    bid:  true,
+                                    blob: asiBlob
+                                };
+
+                            if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
                             {
-                                asiImpEnd = Date.now();
+                                post.pqlatency = asiPreQualEnd - asiPreQualStart;
+                            }
 
-                                var post =
-                                    {
-                                        bid:        true,
-                                        pqlatency:  asiPreQualEnd - asiPreQualStart,
-                                        implatency: [asiImpEnd - asiImpStart],
-                                        blob:       asiBlob
-                                    };
+                            if (typeof asiImpEnd != "undefined" && typeof asiImpStart != "undefined")
+                            {
+                                post.implatency = [asiImpEnd - asiImpStart];
+                            }
 
-                                postBackMetrics(
-                                        post,
-                                        function()
-                                        {
-                                            // display success
-                                            var tx       = document.getElementById("tx");
-                                            tx.innerText = 'Transaction BID: ' + asiBlob;
-                                            declareDone();
-                                        }
-                                );
-                            };
+                            postBackMetrics(
+                                post,
+                                function()
+                                {
+                                    // display success
+                                    var tx       = document.getElementById("tx");
+                                    tx.innerText = 'Transaction BID: ' + asiBlob;
+                                    declareDone();
+                                }
+                            );
+                        };
+
                     ifr.onerror = ifr.onload;
                     ifr.src = url;
                 }
                 else
                 {
-                    var post =
-                        {
-                            nobid:      true,
-                            pqlatency:  asiPreQualEnd - asiPreQualStart
-                        };
+                    var post = {nobid: true};
+
+                    if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
+                    {
+                        post.pqlatency = asiPreQualEnd - asiPreQualStart
+                    }
 
                     postBackMetrics(
-                            post,
-                            function()
-                            {
-                                // display locked
-                                var tx       = document.getElementById("tx");
-                                tx.innerText = 'Transaction NOBID';
-                                declareDone();
-                            }
+                        post,
+                        function()
+                        {
+                            // display locked
+                            var tx       = document.getElementById("tx");
+                            tx.innerText = 'Transaction NOBID';
+                            declareDone();
+                        }
                     );
                 }
             }
@@ -127,21 +137,22 @@
 
         if (typeof asiPlacement == "undefined")
         {
-            var post =
-                {
-                    failed:     true,
-                    pqlatency:  asiPreQualEnd - asiPreQualStart
-                };
+            var post = {failed: true};
+
+            if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
+            {
+                post.pqlatency = asiPreQualEnd - asiPreQualStart
+            }
 
             postBackMetrics(
-                    post,
-                    function()
-                    {
-                        // display locked
-                        var tx       = document.getElementById("tx");
-                        tx.innerText = 'Transaction FAILED';
-                        declareDone();
-                    }
+                post,
+                function()
+                {
+                    // display locked
+                    var tx       = document.getElementById("tx");
+                    tx.innerText = 'Transaction FAILED';
+                    declareDone();
+                }
             );
         }
     }

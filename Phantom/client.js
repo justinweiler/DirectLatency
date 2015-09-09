@@ -4,32 +4,46 @@
 var system      = require('system');
 var fs          = require('fs');
 var async       = require('./async.js');
-var i           = 1;
+var i           = 0;
 var id          = system.args[1];
 var end         = system.args[2];
 var nobid       = 0;
 var failed      = 0;
 var notRendered = 0;
 var timeout     = 0;
+var statusFail  = 0;
 var bid         = 0;
 
 var cncURL      = 'http://localhost:3000/cnc';
 var testPageURL = 'http://localhost:3000/ph';
 
+phantom.onError = function(msg)
+{
+    console.log('<' + id + '> PHANTOM ERROR: ' + msg);
+    console.log('<' + id + '> terminated');
+    phantom.exit(1);
+};
+
 function loopTest()
 {
-    return i <= end;
+    return i < end;
 }
 
 function loopFinish(err)
 {
     if (err)
     {
-        console.log(err);
+        console.log('<' + id + '> loopFinish error: ' + err);
     }
     else
     {
-        console.log('<' + id + '> Bid:', bid, 'NoBid:', nobid, 'Failed:', failed, 'Not Rendered:', notRendered, 'Timeout:', timeout);
+        console.log('<' + id + '> Bid:', bid,
+            'NoBid:', nobid,
+            'Failed:', failed,
+            'Not Rendered:', notRendered,
+            'Timeout:', timeout,
+            'Status Fail:', statusFail
+        );
     }
 
     phantom.exit();
@@ -50,9 +64,6 @@ function makeId()
 
 function waitFor(page, selector, expiry, callback)
 {
-    //system.stderr.writeLine("- waitFor(" + selector + ", " + expiry + ")");
-
-    // try and fetch the desired element from the page
     var result = page.evaluate(
         function (selector)
         {
@@ -61,25 +72,18 @@ function waitFor(page, selector, expiry, callback)
         selector
     );
 
-    // if desired element found then call callback
     if (result)
     {
-        //system.stderr.writeLine("- trigger " + selector + " found");
-        callback(true);
-        return;
+        return callback(true);
     }
 
-    // determine whether timeout is triggered
     var finish = (new Date()).getTime();
 
     if (finish > expiry)
     {
-        //system.stderr.writeLine("- timed out");
-        callback(false);
-        return;
+        return callback(false);
     }
 
-    // haven't timed out, haven't found object, so poll in another 100ms
     window.setTimeout(
         function ()
         {
@@ -101,7 +105,17 @@ function _visitTestPage(cookie, callback)
 
     var page = require('webpage').create();
 
+    page.onError = phantom.onError;
+
     page.settings.userAgent = 'Grebulon';
+    page.settings.resourceTimeout = 5000;
+
+    page.onResourceTimeout = function()
+    {
+        timeout++;
+        console.log('<' + id + '> Unable to access test page: Timeout');
+        return callback();
+    };
 
     page.open(
         testPageURL,
@@ -109,15 +123,17 @@ function _visitTestPage(cookie, callback)
         {
             if (status !== 'success')
             {
+                statusFail++;
                 page.close();
-                return callback('Unable to access test page');
+                console.log('<' + id + '> Unable to access test page: Status');
+                return callback();
             }
             else
             {
                 return waitFor(
                     page,
                     '#testdone',
-                    (new Date()).getTime() + 30000,
+                    (new Date()).getTime() + 5000,
                     function (inTime)
                     {
                         var txidOut = page.evaluate(
@@ -129,6 +145,7 @@ function _visitTestPage(cookie, callback)
 
                         if (inTime == false)
                         {
+                            console.log('<' + id + '> Unable to finish test page: Timeout');
                             timeout++;
                         }
                         else if (~txidOut.indexOf('NOBID'))
@@ -149,8 +166,14 @@ function _visitTestPage(cookie, callback)
                         }
 
                         page.close();
-                        //fs.write('client.log', '<' + id + '>Iteration[' + i + '] ' + txidOut + '\n', 'a+');
-                        i++;
+
+                        //fs.write('client.log', '<' + id + '> Iteration[' + i + '] ' + txidOut + '\n', 'a+');
+
+                        //if (i % 100 == 0)
+                        //{
+                        //    console.log('<' + id + '> Iteration: ' + i);
+                        //}
+
                         callback();
                     }
                 );
@@ -161,9 +184,17 @@ function _visitTestPage(cookie, callback)
 
 function visitTestPageUseCNC(callback)
 {
+    i++;
+
     phantom.cookie = '';
 
     var cncpage = require('webpage').create();
+
+    cncpage.onResourceTimeout = function()
+    {
+        console.log('<' + id + '> Unable to access cnc server: Timeout');
+        return callback();
+    };
 
     cncpage.open(
         cncURL,
@@ -171,8 +202,10 @@ function visitTestPageUseCNC(callback)
         {
             if (status !== 'success')
             {
+                statusFail++;
                 cncpage.close();
-                return callback('Unable to access cnc server');
+                console.log('<' + id + '> Unable to access cnc server: Status');
+                return callback();
             }
             else
             {
@@ -192,8 +225,12 @@ function visitTestPageUseCNC(callback)
 
 function visitTestPage(callback)
 {
+    i++;
+
     phantom.cookie = '';
-    var cookie     = makeId();
+
+    var cookie = makeId();
+
     _visitTestPage(cookie, callback);
 }
 

@@ -28,6 +28,11 @@ phantom.onError = function(msg)
 
 function loopTest()
 {
+    if (end == 'INFINITE')
+    {
+        return true;
+    }
+
     return i < end;
 }
 

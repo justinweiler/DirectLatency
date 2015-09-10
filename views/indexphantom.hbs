@@ -28,7 +28,7 @@
         post.source = 'Canary-P';
         var http    = new XMLHttpRequest();
         var postStr = JSON.stringify(post);
-        http.open("POST", "http://localhost:3000/cnc", true);
+        http.open("POST", "{{{url}}}/cnc", true);
         http.setRequestHeader("Content-type", "application/json");
         http.timeout = 1000;
         http.onload = callback;

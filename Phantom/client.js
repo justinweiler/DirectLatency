@@ -4,7 +4,7 @@
 var system      = require('system');
 var fs          = require('fs');
 var async       = require('./async.js');
-var config      = require('./config.js');
+var config      = require('./../config.js');
 
 var i           = 0;
 var id          = system.args[1];
@@ -170,7 +170,6 @@ function _visitTestPage(cookie, callback)
                         page.close();
 
                         //fs.write('client.log', '<' + id + '> Iteration[' + i + '] ' + txidOut + '\n', 'a+');
-
                         //if (i % 100 == 0)
                         //{
                         //    console.log('<' + id + '> Iteration: ' + i);

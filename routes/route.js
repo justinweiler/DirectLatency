@@ -1,6 +1,8 @@
 var express = require('express');
 var fs = require('fs');
-var async = require ('async');
+var async = require('async');
+var config = require('./../config.js');
+
 var router = express.Router();
 
 var state = {};
@@ -50,7 +52,7 @@ function sample(series, latency, blob, callback)
 
             if (state.capture)
             {
-                fs.appendFile('latency.log', series + ',' + latency + ',' + blob + '\n', undefined, callback);
+                fs.appendFile(config.out, series + ',' + latency + ',' + blob + '\n', undefined, callback);
             }
 
             break;
@@ -155,14 +157,16 @@ router.route('/')
             tasks,
             function (err)
             {
+                state.stringSeries = JSON.stringify(state.series);
+
                 if (err)
                 {
+                    console.log(err.toString());
                     res.status = 500;
                 }
                 else
                 {
-                    state.stringSeries = JSON.stringify(state.series);
-                    res.status         = 200;
+                    res.status = 200;
                 }
 
                 res.end();

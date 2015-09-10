@@ -1,4 +1,6 @@
 var express = require('express');
+var config = require('./../config.js');
+
 var router = express.Router();
 
 /* GET home page for browser. */
@@ -6,7 +8,7 @@ router.get(
     '/',
     function (req, res)
     {
-        res.render('index', {title: 'Test Page For Browser'});
+        res.render('index', {title: 'Test Page For Browser', url: config.url});
     }
 );
 
@@ -15,7 +17,7 @@ router.get(
     '/ph',
     function (req, res)
     {
-        res.render('indexphantom', {title: 'Test Page For Phantom'});
+        res.render('indexphantom', {title: 'Test Page For Phantom', url: config.url});
     }
 );
 

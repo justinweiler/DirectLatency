@@ -1,5 +1,7 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/heatmap.js"></script>
+<script src="http://code.highcharts.com/modules/data.js"></script>
 
 <label>Bids: {{bids}}</label><br/>
 <label>Impr: {{impr}}</label><br/>
@@ -7,22 +9,44 @@
 <label>Fails: {{fails}}</label><br/>
 <label>Capturing: {{capture}}</label><br/>
 
-<div id="container" style="min-width: 310px; max-width: 800px; height: 500px; margin: 0"></div>
+<div id="container1" style="border-width:1px; border-style:solid; width: 800px; height: 500px; margin: 0 auto"></div>
+<div id="container2" style="border-width:1px; border-style:solid; height: 600px; width: 1600px; margin: 0 auto"></div>
+<pre id="csv" style="display: none">{{{heatData}}}</pre>
 
 <script>
+    var bins = (function(){
+        var ary  = [];
+        var incr = {{binSize}};
+        var max  = {{maxBins}};
+        var last = 0;
+
+        for (var i = 0; i < max - 1; i++)
+        {
+            ary.push(last + '-' + (last + incr));
+            last += incr;
+        }
+
+        ary.push('> ' + last);
+
+        return ary;
+    })();
+
+    function getBin(y)
+    {
+        return bins[y];
+    }
+
     $(function () {
-        $('#container').highcharts({
+        $('#container1').highcharts(
+        {
             chart: {
                 type: 'bar'
             },
             title: {
-                text: 'Direct Latencies'
+                text: 'Direct Latencies (cumulative)'
             },
             xAxis: {
-                categories: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70',
-                             '70-80', '80-90', '90-100', '100-110', '110-120', '120-130', '130-140',
-                             '140-150', '150-160', '160-170', '170-180', '180-190','190-200',
-                             '200-210', '210-220', '220-230', '230-240', '240-250', '> 250'],
+                categories: bins,
                 title: {
                     text: 'Latency (ms)'
                 }
@@ -58,7 +82,131 @@
             credits: {
                 enabled: false
             },
-            series: {{{stringSeries}}}
+            series: {{{histoData}}}
+        });
+    });
+
+    $(function () {
+        (function (H) {
+            var Series = H.Series,
+                each = H.each,
+                wrap = H.wrap,
+                seriesTypes = H.seriesTypes;
+
+            Series.prototype.getContext =
+                function ()
+                {
+                    if (!this.canvas)
+                    {
+                        this.canvas = document.createElement('canvas');
+                        this.canvas.setAttribute('width', this.chart.chartWidth);
+                        this.canvas.setAttribute('height', this.chart.chartHeight);
+                        this.image = this.chart.renderer.image(
+                                '', 0, 0, this.chart.chartWidth, this.chart.chartHeight).add(this.group);
+                        this.ctx = this.canvas.getContext('2d');
+                    }
+
+                    return this.ctx;
+                };
+
+            Series.prototype.canvasToSVG =
+                function ()
+                {
+                    this.image.attr({href: this.canvas.toDataURL('image/png')});
+                };
+
+            H.wrap(
+                H.seriesTypes.heatmap.prototype,
+                'drawPoints',
+                function (proceed)
+                {
+                    var ctx = this.getContext();
+
+                    if (ctx)
+                    {
+                        // draw the columns
+                        each(
+                            this.points,
+                            function (point)
+                            {
+                                var plotY = point.plotY,
+                                    shapeArgs;
+
+                                if (plotY !== undefined && !isNaN(plotY) && point.y !== null)
+                                {
+                                    shapeArgs = point.shapeArgs;
+
+                                    ctx.fillStyle = point.pointAttr[''].fill;
+                                    ctx.fillRect(shapeArgs.x, shapeArgs.y, shapeArgs.width, shapeArgs.height);
+                                }
+                            }
+                        );
+
+                        this.canvasToSVG();
+                    }
+                    else
+                    {
+                        this.chart.showLoading("Your browser doesn't support HTML5 canvas, <br>please use a modern browser");
+                    }
+                }
+            );
+
+            H.seriesTypes.heatmap.prototype.directTouch = false; // Use k-d-tree
+        }(Highcharts));
+
+        $('#container2').highcharts(
+        {
+            data: {
+                csv: document.getElementById('csv').innerHTML
+            },
+            chart: {
+                type: 'heatmap',
+                margin: [40, 0, 115, 90]
+            },
+            title: {
+                text: 'Direct Latency By Time',
+                align: 'left',
+                x: 90
+            },
+            yAxis: {
+                categories: bins,
+                title: {
+                    text: 'Latency (ms)'
+                }
+            },
+            colorAxis: {
+                stops: [
+                    [0.00, '#ffffff'],
+                    [0.10, '#e5e5ff'],
+                    [0.20, '#ccccff'],
+                    [0.30, '#b2b3ff'],
+                    [0.40, '#9999ff'],
+                    [0.50, '#7f80ff'],
+                    [0.60, '#6667ff'],
+                    [0.70, '#4c4eff'],
+                    [0.80, '#3334ff'],
+                    [0.90, '#191bff'],
+                    [1.00, '#0001b2']
+                ],
+                min: 0,
+                max: 100,
+                startOnTick: false,
+                endOnTick: false
+            },
+            credits: {
+                enabled: false
+            },
+            tooltip: {
+                formatter: function () {
+                    return this.point.x + ' saw ' + this.point.value + '% @ ' + getBin(this.point.y) + 'ms';
+                }
+            },
+            series: [{
+                borderWidth: 0,
+                nullColor: '#FFFFFF',
+                colsize: 1,
+                turboThreshold: Number.MAX_VALUE
+            }]
         });
     });
 </script>

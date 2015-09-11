@@ -182,14 +182,24 @@ function getRenderStateData(hourStart, hourEnd, series)
         start = 0;
     }
 
-    if (end > heat.length)
+    if (end < start)
     {
-        end = heat.length;
+        end = start;
+    }
+
+    if (start >= heat.length)
+    {
+        start = heat.length - 1;
+    }
+
+    if (end >= heat.length)
+    {
+        end = heat.length - 1;
     }
 
     renderState.heatData = 'Date,Bin,Val' + sep;
 
-    for (var i = start; i < end; i++)
+    for (var i = start; i <= end; i++)
     {
         var chunkState = heat[i];
 

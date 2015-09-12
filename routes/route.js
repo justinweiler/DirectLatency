@@ -397,7 +397,11 @@ function getIdCookieHandler(req, res)
 
 function resetStateHandler(req, res)
 {
+    clearInterval(chunkTimer);
     resetState(cumulative);
+    heat = [];
+    addHeatState();
+    chunkTimer = setInterval(addHeatState, chunkSize * 60 * 1000);
     res.redirect('/cnc/status');
 }
 
@@ -417,7 +421,7 @@ function setNoCaptureHandler(req, res)
 
 capture();
 addHeatState();
-setInterval(addHeatState, chunkSize * 60 * 1000);
+var chunkTimer = setInterval(addHeatState, chunkSize * 60 * 1000);
 
 router.route('/')
     .get(getIdCookieHandler)

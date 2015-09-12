@@ -17,19 +17,22 @@ var heatRange   = maxDays * 24 * hourChunks;
 
 function createNewState()
 {
-    return {date: Date.now()};
+    var newState = {date: Date.now()};
+    resetState(newState);
+    return newState;
 }
 
 function addHeatState()
 {
     var newState = createNewState();
-    resetState(newState);
     heat.push(newState);
 
     if (heat.length > heatRange)
     {
         heat.splice(0, 1);
     }
+
+    return newState;
 }
 
 function activeHeatState()
@@ -46,21 +49,21 @@ function resetState(state)
     state.series    = [];
 }
 
-function capture(state)
+function capture()
 {
-    state.capture = true;
+    cumulative.capture = true;
 }
 
-function noCapture(state)
+function noCapture()
 {
-    state.capture = false;
+    cumulative.capture = false;
 }
 
 function createNewArray()
 {
     var array = [];
 
-    for (var i = 0; i <= maxBins; i++)
+    for (var i = 0; i < maxBins; i++)
     {
         array[i] = 0;
     }
@@ -68,7 +71,7 @@ function createNewArray()
     return array;
 }
 
-function createNewSeries(series, state)
+function createNewSeries(state, series)
 {
     var newSeries = {
             name: series,
@@ -76,43 +79,44 @@ function createNewSeries(series, state)
         };
 
     state.series.push(newSeries);
+
     return newSeries;
 }
 
-function addStateData(cumulative, state)
+function addStateData(aggregated, state)
 {
-    cumulative.bids += state.bids;
-    cumulative.impr += state.impr;
-    cumulative.nobids += state.nobids;
-    cumulative.fails += state.fails;
+    aggregated.bids += state.bids;
+    aggregated.impr += state.impr;
+    aggregated.nobids += state.nobids;
+    aggregated.fails += state.fails;
 
     for (var i = 0; i < state.series.length; i++)
     {
         var stateSeries = state.series[i];
-        var cumulativeSeries;
+        var aggregatedSeries;
 
-        for (var j = 0; j < cumulative.series.length; j++)
+        for (var j = 0; j < aggregated.series.length; j++)
         {
-            cumulativeSeries = cumulative.series[j];
+            aggregatedSeries = aggregated.series[j];
 
-            if (cumulativeSeries.name == stateSeries.name)
+            if (aggregatedSeries.name == stateSeries.name)
             {
                 break;
             }
             else
             {
-                cumulativeSeries = undefined;
+                aggregatedSeries = undefined;
             }
         }
 
-        if (cumulativeSeries == undefined)
+        if (aggregatedSeries == undefined)
         {
-            cumulativeSeries = createNewSeries(stateSeries.name, cumulative);
+            aggregatedSeries = createNewSeries(aggregated, stateSeries.name);
         }
 
-        for (var j = 0; j < cumulativeSeries.data.length; j++)
+        for (var j = 0; j < aggregatedSeries.data.length; j++)
         {
-            cumulativeSeries.data[j] += stateSeries.data[j];
+            aggregatedSeries.data[j] += stateSeries.data[j];
         }
     }
 }
@@ -141,63 +145,73 @@ function sample(state, series, latency, blob, callback)
 
             if (state.capture)
             {
-                fs.appendFile(config.out, series + ',' + latency + ',' + blob + '\n', undefined, callback);
+                return fs.appendFile(config.out, series + ',' + latency + ',' + blob + '\n', undefined, callback);
             }
-
-            break;
+            else
+            {
+                return callback();
+            }
         }
     }
 
     if (!sampled)
     {
-        createNewSeries(series, state);
+        createNewSeries(state, series);
         sample(state, series, latency, blob, callback);
     }
 }
 
-function getRenderStateData(hourStart, hourEnd, series)
+function getRenderStateData(dateStart, dateEnd, series)
 {
-    var sep = '&#13;';
-    var renderState = {};
-    resetState(renderState);
+    var renderState = createNewState();
+    var useCumulative = dateStart == 'CUMULATIVE' || dateEnd == 'CUMULATIVE';
+    var start = 0;
+    var end = heat.length - 1;
 
-    if (hourStart == 'CUMULATIVE')
+    if (useCumulative)
     {
-        hourStart = Math.ceil(heat.length / hourChunks);
-        hourEnd = 0;
-
         renderState = JSON.parse(JSON.stringify(cumulative));
     }
+    else
+    {
+        var foundStart = false;
 
-    renderState.series      = series;
+        for (var i = 0; i < heat.length; i++)
+        {
+            var chunkDate = heat[i].date;
+
+            if (!foundStart && dateStart < chunkDate)
+            {
+                start = i - 1;
+                foundStart = true;
+            }
+            else if (dateEnd <= chunkDate)
+            {
+                end = i - 1;
+                break;
+            }
+        }
+
+        if (start < 0)
+        {
+            start = 0;
+        }
+
+        if (end < start)
+        {
+            end = start;
+        }
+    }
+
+    renderState.dateStart   = heat[start].date;
+    renderState.dateEnd     = heat[end].date;
     renderState.capture     = cumulative.capture;
     renderState.binSize     = binSize;
     renderState.maxBins     = maxBins;
-
-    var start = heat.length + hourStart * hourChunks;
-    var end = heat.length + hourEnd * hourChunks;
-
-    if (start < 0)
-    {
-        start = 0;
-    }
-
-    if (end < start)
-    {
-        end = start;
-    }
-
-    if (start >= heat.length)
-    {
-        start = heat.length - 1;
-    }
-
-    if (end >= heat.length)
-    {
-        end = heat.length - 1;
-    }
-
-    renderState.heatData = 'Date,Bin,Val' + sep;
+    renderState.chunkSize   = chunkSize;
+    renderState.cumulative  = useCumulative;
+    renderState.heatName    = series;
+    renderState.heatData    = 'Date,Bin,Val\n';
 
     for (var i = start; i <= end; i++)
     {
@@ -205,17 +219,8 @@ function getRenderStateData(hourStart, hourEnd, series)
 
         var normalChunkData = createNewArray();
 
-        if (hourStart != 'CUMULATIVE')
+        if (!useCumulative)
         {
-            if (i == start)
-            {
-                renderState.dateStart = chunkState.date;
-            }
-            else if (i == end - 1)
-            {
-                renderState.dateEnd = chunkState.date;
-            }
-
             addStateData(renderState, chunkState);
         }
 
@@ -225,19 +230,16 @@ function getRenderStateData(hourStart, hourEnd, series)
 
             if (chunkStateSeries.name == series)
             {
-                var max = 0;
+                var total = 0;
 
                 for (var k = 0; k < chunkStateSeries.data.length; k++)
                 {
-                    if (chunkStateSeries.data[k] > max)
-                    {
-                        max = chunkStateSeries.data[k];
-                    }
+                    total += chunkStateSeries.data[k];
                 }
 
                 for (var k = 0; k < chunkStateSeries.data.length; k++)
                 {
-                    normalChunkData[k] = Math.ceil((chunkStateSeries.data[k] * 100) / max);
+                    normalChunkData[k] = Math.ceil((chunkStateSeries.data[k] * 100) / total);
                 }
 
                 break;
@@ -246,7 +248,7 @@ function getRenderStateData(hourStart, hourEnd, series)
 
         for (var j = 0; j < normalChunkData.length; j++)
         {
-            renderState.heatData += chunkState.date + ',' + j + ',' + normalChunkData[j] + sep;
+            renderState.heatData += chunkState.date + ',' + j + ',' + normalChunkData[j] + '\n';
         }
     }
 
@@ -257,11 +259,25 @@ function getRenderStateData(hourStart, hourEnd, series)
 
 function getStatusHandler(req, res)
 {
-    var hourStart   = req.params.hourStart  || 'CUMULATIVE';
-    var hourEnd     = req.params.hourEnd    || hourStart;
+    var dateStart   = req.params.dateStart  || 'CUMULATIVE';
+    var dateEnd     = req.params.dateEnd    || dateStart;
     var series      = req.params.series     || 'Canary-P:bid';
 
-    res.render('cnc', getRenderStateData(hourStart, hourEnd, series));
+    if (dateEnd == 'now')
+    {
+        dateEnd = Date.now();
+    }
+    else if (dateEnd != 'CUMULATIVE')
+    {
+        dateEnd = Date.parse(dateEnd + 'Z');
+    }
+
+    if (dateStart != 'CUMULATIVE')
+    {
+        dateStart = Date.parse(dateStart + 'Z');
+    }
+
+    res.render('cnc', getRenderStateData(dateStart, dateEnd, series));
 }
 
 function postMetricsHandler(req, res)
@@ -271,17 +287,20 @@ function postMetricsHandler(req, res)
     if (req.body.bid)
     {
         result = ':bid';
-        state.bids++;
+        cumulative.bids++;
+        activeHeatState().bids++;
     }
     else if (req.body.nobid)
     {
         result = ':nobid';
-        state.nobids++;
+        cumulative.nobids++;
+        activeHeatState().nobids++;
     }
     else if (req.body.failed)
     {
         result = ':fail';
-        state.fails++;
+        cumulative.fails++;
+        activeHeatState().fails++;
     }
 
     req.body.blob = req.body.blob || '';
@@ -315,7 +334,9 @@ function postMetricsHandler(req, res)
     {
         for (var i = 0; i < req.body.implatency.length; i++)
         {
-            state.impr++;
+            cumulative.impr++;
+            activeHeatState().impr++;
+
             var latency = req.body.implatency[i];
 
             tasks.push(
@@ -346,8 +367,6 @@ function postMetricsHandler(req, res)
         tasks,
         function (err)
         {
-            state.stringSeries = JSON.stringify(state.series);
-
             if (err)
             {
                 console.log(err.toString());
@@ -378,7 +397,7 @@ function getIdCookieHandler(req, res)
 
 function resetStateHandler(req, res)
 {
-    resetState();
+    resetState(cumulative);
     res.redirect('/cnc/status');
 }
 
@@ -396,8 +415,7 @@ function setNoCaptureHandler(req, res)
 
 //////////////////////
 
-resetState(cumulative);
-capture(cumulative);
+capture();
 addHeatState();
 setInterval(addHeatState, chunkSize * 60 * 1000);
 
@@ -405,8 +423,14 @@ router.route('/')
     .get(getIdCookieHandler)
     .post(postMetricsHandler);
 
+
 router.get(
-    '/status/:hourStart/:hourEnd/:series',
+    '/status/:series',
+    getStatusHandler
+);
+
+router.get(
+    '/status/:series/:dateStart/:dateEnd',
     getStatusHandler
 );
 
@@ -429,5 +453,25 @@ router.get(
     '/nocapture',
     setNoCaptureHandler
 );
+
+/* TEST DATA
+function mockData(state, i, bids, nobids)
+{
+    state.bids = bids + (i % 100);
+    state.nobids = nobids + (i % 100);
+    createNewSeries(state, 'Canary-P:bid').data[i % maxBins] = state.bids;
+    createNewSeries(state, 'Canary-P:nobid').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+
+    return state;
+}
+
+mockData(cumulative, 0, 1111, 111);
+heat.splice(0, 1);
+
+for (var i = heatRange - 1; i >= 0; i--)
+{
+    mockData(addHeatState(), i, 111, 11).date -= chunkSize * 60 * 1000 * (i + 1);
+}
+*/
 
 module.exports = router;

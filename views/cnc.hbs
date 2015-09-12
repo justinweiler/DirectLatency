@@ -1,19 +1,25 @@
+<div style="border-width:1px; border-style:solid; height: 150px; width: 1200px;">
+    <h2 style="margin: 10px;">Summary</h2>
+    <label style="margin: 20px;">Bids: {{bids}}</label><br/>
+    <label style="margin: 20px;">Impr: {{impr}}</label><br/>
+    <label style="margin: 20px;">NoBids: {{nobids}}</label><br/>
+    <label style="margin: 20px;">Fails: {{fails}}</label><br/>
+    <label style="margin: 20px;">Capturing: {{capture}}</label><br/>
+</div>
+<br/>
+<div id="container1" style="border-width:1px; border-style:solid; height: 600px; width: 1200px; margin: 0 auto"></div>
+<br/>
+<div id="container2" style="border-width:1px; border-style:solid; height: 600px; width: 1200px; margin: 0 auto"></div>
+<pre id="csv" style="display: none">{{{heatData}}}</pre>
+
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="http://code.highcharts.com/modules/heatmap.js"></script>
 <script src="http://code.highcharts.com/modules/data.js"></script>
 
-<label>Bids: {{bids}}</label><br/>
-<label>Impr: {{impr}}</label><br/>
-<label>NoBids: {{nobids}}</label><br/>
-<label>Fails: {{fails}}</label><br/>
-<label>Capturing: {{capture}}</label><br/>
-
-<div id="container1" style="border-width:1px; border-style:solid; width: 800px; height: 500px; margin: 0 auto"></div>
-<div id="container2" style="border-width:1px; border-style:solid; height: 600px; width: 1600px; margin: 0 auto"></div>
-<pre id="csv" style="display: none">{{{heatData}}}</pre>
-
 <script>
+    var chunkSizeMS = 1000 * 60 * {{chunkSize}};
+
     var bins = (function(){
         var ary  = [];
         var incr = {{binSize}};
@@ -36,14 +42,25 @@
         return bins[y];
     }
 
-    $(function () {
+    (function (H) {
+        var dateRange2 = ' ' + H.dateFormat('%m-%d-%y %H:%M', {{dateStart}}) + '  to  ' +
+            H.dateFormat('%m-%d-%y %H:%M', {{dateEnd}});
+
+        var dateRange1 = dateRange2;
+
+        if ({{cumulative}})
+        {
+            dateRange1 = 'Since: ' + ' ' + H.dateFormat('%m-%d-%y %H:%M', {{date}});
+        }
+
         $('#container1').highcharts(
         {
             chart: {
                 type: 'bar'
             },
             title: {
-                text: 'Direct Latencies (cumulative)'
+                text: 'Direct Latencies ' + dateRange1,
+                align: 'left'
             },
             xAxis: {
                 categories: bins,
@@ -76,7 +93,7 @@
                 y: 80,
                 floating: true,
                 borderWidth: 1,
-                backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
+                backgroundColor: ((H.theme && H.theme.legendBackgroundColor) || '#FFFFFF'),
                 shadow: true
             },
             credits: {
@@ -84,75 +101,71 @@
             },
             series: {{{histoData}}}
         });
-    });
 
-    $(function () {
-        (function (H) {
-            var Series = H.Series,
-                each = H.each,
-                wrap = H.wrap,
-                seriesTypes = H.seriesTypes;
+        var Series = H.Series,
+            each = H.each,
+            wrap = H.wrap,
+            seriesTypes = H.seriesTypes;
 
-            Series.prototype.getContext =
-                function ()
+        Series.prototype.getContext =
+            function ()
+            {
+                if (!this.canvas)
                 {
-                    if (!this.canvas)
-                    {
-                        this.canvas = document.createElement('canvas');
-                        this.canvas.setAttribute('width', this.chart.chartWidth);
-                        this.canvas.setAttribute('height', this.chart.chartHeight);
-                        this.image = this.chart.renderer.image(
-                                '', 0, 0, this.chart.chartWidth, this.chart.chartHeight).add(this.group);
-                        this.ctx = this.canvas.getContext('2d');
-                    }
-
-                    return this.ctx;
-                };
-
-            Series.prototype.canvasToSVG =
-                function ()
-                {
-                    this.image.attr({href: this.canvas.toDataURL('image/png')});
-                };
-
-            H.wrap(
-                H.seriesTypes.heatmap.prototype,
-                'drawPoints',
-                function (proceed)
-                {
-                    var ctx = this.getContext();
-
-                    if (ctx)
-                    {
-                        // draw the columns
-                        each(
-                            this.points,
-                            function (point)
-                            {
-                                var plotY = point.plotY,
-                                    shapeArgs;
-
-                                if (plotY !== undefined && !isNaN(plotY) && point.y !== null)
-                                {
-                                    shapeArgs = point.shapeArgs;
-
-                                    ctx.fillStyle = point.pointAttr[''].fill;
-                                    ctx.fillRect(shapeArgs.x, shapeArgs.y, shapeArgs.width, shapeArgs.height);
-                                }
-                            }
-                        );
-
-                        this.canvasToSVG();
-                    }
-                    else
-                    {
-                        this.chart.showLoading("Your browser doesn't support HTML5 canvas, <br>please use a modern browser");
-                    }
+                    this.canvas = document.createElement('canvas');
+                    this.canvas.setAttribute('width', this.chart.chartWidth);
+                    this.canvas.setAttribute('height', this.chart.chartHeight);
+                    this.image = this.chart.renderer.image(
+                            '', 0, 0, this.chart.chartWidth, this.chart.chartHeight).add(this.group);
+                    this.ctx = this.canvas.getContext('2d');
                 }
-            );
 
-            H.seriesTypes.heatmap.prototype.directTouch = false; // Use k-d-tree
-        }(Highcharts));
+                return this.ctx;
+            };
+
+        Series.prototype.canvasToSVG =
+            function ()
+            {
+                this.image.attr({href: this.canvas.toDataURL('image/png')});
+            };
+
+        H.wrap(
+            H.seriesTypes.heatmap.prototype,
+            'drawPoints',
+            function (proceed)
+            {
+                var ctx = this.getContext();
+
+                if (ctx)
+                {
+                    // draw the columns
+                    each(
+                        this.points,
+                        function (point)
+                        {
+                            var plotY = point.plotY,
+                                shapeArgs;
+
+                            if (plotY !== undefined && !isNaN(plotY) && point.y !== null)
+                            {
+                                shapeArgs = point.shapeArgs;
+
+                                ctx.fillStyle = point.pointAttr[''].fill;
+                                ctx.fillRect(shapeArgs.x, shapeArgs.y, shapeArgs.width, shapeArgs.height);
+                            }
+                        }
+                    );
+
+                    this.canvasToSVG();
+                }
+                else
+                {
+                    this.chart.showLoading("Your browser doesn't support HTML5 canvas, <br>please use a modern browser");
+                }
+            }
+        );
+
+        H.seriesTypes.heatmap.prototype.directTouch = false; // Use k-d-tree
 
         $('#container2').highcharts(
         {
@@ -164,15 +177,23 @@
                 margin: [40, 0, 115, 90]
             },
             title: {
-                text: 'Direct Latency By Time',
-                align: 'left',
-                x: 90
+                text: '{{{heatName}}} '+ dateRange2,
+                align: 'left'
             },
             yAxis: {
                 categories: bins,
+                gridZIndex: 1e10,
                 title: {
                     text: 'Latency (ms)'
                 }
+            },
+            xAxis: {
+                type: 'datetime',
+                labels: {
+                    format: '{value:%m-%d-%y<br/>%H:%M}'
+                },
+                min: {{dateStart}},
+                max: {{dateEnd}}
             },
             colorAxis: {
                 stops: [
@@ -189,24 +210,23 @@
                     [1.00, '#0001b2']
                 ],
                 min: 0,
-                max: 100,
-                startOnTick: false,
-                endOnTick: false
+                max: 100
             },
             credits: {
                 enabled: false
             },
             tooltip: {
                 formatter: function () {
-                    return this.point.x + ' saw ' + this.point.value + '% @ ' + getBin(this.point.y) + 'ms';
+                    return H.dateFormat('%m-%d-%y %H:%M', this.point.x) +
+                        ' saw ' +  this.point.value + '% @ ' + getBin(this.point.y) + 'ms';
                 }
             },
             series: [{
                 borderWidth: 0,
                 nullColor: '#FFFFFF',
-                colsize: 1,
+                colsize: chunkSizeMS,
                 turboThreshold: Number.MAX_VALUE
             }]
         });
-    });
+    }(Highcharts));
 </script>

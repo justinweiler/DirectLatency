@@ -30,7 +30,7 @@
         var postStr = JSON.stringify(post);
         http.open("POST", "{{{url}}}/cnc", true);
         http.setRequestHeader("Content-type", "application/json");
-        http.timeout = 1000;
+        http.timeout = 5000;
         http.onload = callback;
         http.send(postStr);
     }

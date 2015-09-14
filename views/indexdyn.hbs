@@ -64,7 +64,7 @@
                 var ifr = document.getElementById("ifr");
                 ifr.src = url;
 
-                // display success
+                // display bid
                 var tx     = document.getElementById("tx");
                 var dyn    = document.getElementById("beaconcfg");
                 var dOther = dyn.getAttribute('data-other');
@@ -72,7 +72,7 @@
                 tx.innerText = 'Transaction BID: ' + asiBlob + ' Dyn: '  + dOther;
             } else
             {
-                // display locked
+                // display nobid
                 var tx       = document.getElementById("tx");
                 tx.innerText = 'Transaction NOBID';
             }

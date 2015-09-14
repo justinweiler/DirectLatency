@@ -101,7 +101,7 @@
                                 post,
                                 function()
                                 {
-                                    // display success
+                                    // display bid
                                     var tx       = document.getElementById("tx");
                                     tx.innerText = 'Transaction BID: ' + asiBlob;
                                     declareDone();
@@ -125,7 +125,7 @@
                         post,
                         function()
                         {
-                            // display locked
+                            // display nobid
                             var tx       = document.getElementById("tx");
                             tx.innerText = 'Transaction NOBID';
                             declareDone();
@@ -148,7 +148,7 @@
                 post,
                 function()
                 {
-                    // display locked
+                    // display failed
                     var tx       = document.getElementById("tx");
                     tx.innerText = 'Transaction FAILED';
                     declareDone();

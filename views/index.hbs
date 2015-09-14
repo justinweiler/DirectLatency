@@ -112,13 +112,13 @@
                     var ifr = document.getElementById("ifr");
                     ifr.src = url;
 
-                    // display success
+                    // display bid
                     var tx       = document.getElementById("tx");
                     tx.innerText = 'Transaction BID: ' + asiBlob;
                 }
                 else
                 {
-                    // display locked
+                    // display nobid
                     var tx       = document.getElementById("tx");
                     tx.innerText = 'Transaction NOBID';
                 }
@@ -127,7 +127,7 @@
 
         if (typeof asiPlacement == "undefined")
         {
-            // display locked
+            // display failed
             var tx       = document.getElementById("tx");
             tx.innerText = 'Transaction FAILED';
         }

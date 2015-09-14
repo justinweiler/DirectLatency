@@ -96,7 +96,7 @@ function waitFor(page, selector, expiry, callback)
         {
             waitFor(page, selector, expiry, callback);
         },
-        10
+        1000
     );
 }
 
@@ -115,7 +115,7 @@ function _visitTestPage(cookie, callback)
     page.onError = phantom.onError;
 
     page.settings.userAgent = 'Grebulon';
-    page.settings.resourceTimeout = 5000;
+    page.settings.resourceTimeout = 10000;
 
     page.onResourceTimeout = function()
     {
@@ -140,7 +140,7 @@ function _visitTestPage(cookie, callback)
                 return waitFor(
                     page,
                     '#testdone',
-                    (new Date()).getTime() + 5000,
+                    (new Date()).getTime() + 10000,
                     function (inTime)
                     {
                         var txidOut = page.evaluate(
@@ -190,54 +190,66 @@ function _visitTestPage(cookie, callback)
 
 function visitTestPageUseCNC(callback)
 {
-    i++;
-
-    phantom.cookie = '';
-
-    var cncpage = require('webpage').create();
-
-    cncpage.onResourceTimeout = function()
-    {
-        console.log('<' + id + '> Unable to access cnc server: Timeout');
-        return callback();
-    };
-
-    cncpage.open(
-        cncURL,
-        function (status)
+    setTimeout(
+        function ()
         {
-            if (status !== 'success')
-            {
-                statusFail++;
-                cncpage.close();
-                console.log('<' + id + '> Unable to access cnc server: Status');
-                return callback();
-            }
-            else
-            {
-                var cookie = cncpage.evaluate(
-                    function ()
-                    {
-                        return document.getElementById('cookie').textContent;
-                    }
-                );
+            i++;
 
-                cncpage.close();
-                _visitTestPage(cookie, callback);
-            }
-        }
+            phantom.cookie = '';
+
+            var cncpage = require('webpage').create();
+
+            cncpage.onResourceTimeout = function ()
+            {
+                console.log('<' + id + '> Unable to access cnc server: Timeout');
+                return callback();
+            };
+
+            cncpage.open(
+                cncURL,
+                function (status)
+                {
+                    if (status !== 'success')
+                    {
+                        statusFail++;
+                        cncpage.close();
+                        console.log('<' + id + '> Unable to access cnc server: Status');
+                        return callback();
+                    }
+                    else
+                    {
+                        var cookie = cncpage.evaluate(
+                            function ()
+                            {
+                                return document.getElementById('cookie').textContent;
+                            }
+                        );
+
+                        cncpage.close();
+                        _visitTestPage(cookie, callback);
+                    }
+                }
+            );
+        },
+        1000
     );
 }
 
 function visitTestPage(callback)
 {
-    i++;
+    setTimeout(
+        function()
+        {
+            i++;
 
-    phantom.cookie = '';
+            phantom.cookie = '';
 
-    var cookie = makeId();
+            var cookie = makeId();
 
-    _visitTestPage(cookie, callback);
+            _visitTestPage(cookie, callback);
+        },
+        1000
+    );
 }
 
 async.whilst(loopTest, visitTestPage, loopFinish);

@@ -85,10 +85,10 @@ function createNewSeries(state, series)
 
 function addStateData(aggregated, state)
 {
-    aggregated.bids += state.bids;
-    aggregated.impr += state.impr;
-    aggregated.nobids += state.nobids;
-    aggregated.fails += state.fails;
+    aggregated.bids     += state.bids;
+    aggregated.impr     += state.impr;
+    aggregated.nobids   += state.nobids;
+    aggregated.fails    += state.fails;
 
     for (var i = 0; i < state.series.length; i++)
     {
@@ -121,10 +121,8 @@ function addStateData(aggregated, state)
     }
 }
 
-function sample(state, series, latency, blob, callback)
+function captureData(state, series, latency, blob, callback)
 {
-    var sampled = false;
-
     for (var i = 0; i < state.series.length; i++)
     {
         if (series == state.series[i].name)
@@ -141,7 +139,6 @@ function sample(state, series, latency, blob, callback)
             }
 
             state.series[i].data[bin]++;
-            sampled = true;
 
             if (state.capture)
             {
@@ -154,19 +151,16 @@ function sample(state, series, latency, blob, callback)
         }
     }
 
-    if (!sampled)
-    {
-        createNewSeries(state, series);
-        sample(state, series, latency, blob, callback);
-    }
+    createNewSeries(state, series);
+    captureData(state, series, latency, blob, callback);
 }
 
 function getRenderStateData(dateStart, dateEnd, series)
 {
-    var renderState = createNewState();
-    var useCumulative = dateStart == 'CUMULATIVE' || dateEnd == 'CUMULATIVE';
-    var start = 0;
-    var end = heat.length - 1;
+    var renderState     = createNewState();
+    var useCumulative   = dateStart == 'CUMULATIVE' || dateEnd == 'CUMULATIVE';
+    var start           = 0;
+    var end             = heat.length - 1;
 
     if (useCumulative)
     {
@@ -316,7 +310,7 @@ function postMetricsHandler(req, res)
                     [cumulative, activeHeatState()],
                     function (state, eCallback)
                     {
-                        sample(
+                        captureData(
                             state,
                             req.body.source + result,
                             req.body.pqlatency,
@@ -347,7 +341,7 @@ function postMetricsHandler(req, res)
                             [cumulative, activeHeatState()],
                             function (state, eCallback)
                             {
-                                sample(
+                                captureData(
                                     state,
                                     req.body.source + ':imp',
                                     latency,

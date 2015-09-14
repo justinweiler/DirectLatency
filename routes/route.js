@@ -421,7 +421,6 @@ router.route('/')
     .get(getIdCookieHandler)
     .post(postMetricsHandler);
 
-
 router.get(
     '/status/:series',
     getStatusHandler

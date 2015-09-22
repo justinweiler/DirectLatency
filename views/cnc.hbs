@@ -22,7 +22,32 @@
 <script src="http://code.highcharts.com/modules/data.js"></script>
 
 <script>
-    var chunkSizeMS = 1000 * 60 * {{chunkSize}};
+    function mav(series, len)
+    {
+        var average = [];
+
+        for (var i = len - 1; i < series.length; i++)
+        {
+            var sum = 0;
+
+            for (var j = 0; j < len; j++)
+            {
+                sum += series[i - j][1];
+            }
+
+            average.push([series[i][0], sum / len]);
+        }
+
+        return average;
+    }
+
+    var chunkSizeMS     = 1000 * 60 * {{chunkSize}};
+    var ratioData       = {{ratioData}};
+    var bidData         = {{bidData}};
+    var nobidData       = {{nobidData}};
+    var avgRatioData    = mav(ratioData, 36);
+    var avgBidData      = mav(bidData, 36);
+    var avgNobidData    = mav(nobidData, 36);
 
     var bins = (function(){
         var ary  = [];
@@ -141,6 +166,14 @@
                 backgroundColor: ((H.theme && H.theme.legendBackgroundColor) || '#FFFFFF'),
                 shadow: true
             },
+            plotOptions: {
+                line: {
+                    marker: {
+                        enabled: false,
+                        symbol: 'circle'
+                    }
+                }
+            },
             credits: {
                 enabled: false
             },
@@ -153,18 +186,26 @@
             series: [
                 {
                     name: 'bids',
-                    data: {{bidData}}
+                    data: bidData
+                },
+                {
+                    name: 'avg(bids)',
+                    data: avgBidData
                 },
                 {
                     name: 'nobids',
-                    data: {{nobidData}}
+                    data: nobidData
+                },
+                {
+                    name: 'avg(nobids)',
+                    data: avgNobidData
                 }
             ]
         });
 
         $('#container3').highcharts({
             title: {
-                text: '{{{source}}} nobids / bids: ' + dateRange2,
+                text: '{{{source}}} nobids/bids: ' + dateRange2,
                 x: -20 //center
             },
             xAxis: {
@@ -196,6 +237,14 @@
                 backgroundColor: ((H.theme && H.theme.legendBackgroundColor) || '#FFFFFF'),
                 shadow: true
             },
+            plotOptions: {
+                line: {
+                    marker: {
+                        enabled: false,
+                        symbol: 'circle'
+                    }
+                }
+            },
             credits: {
                 enabled: false
             },
@@ -207,8 +256,12 @@
             },
             series: [
                 {
-                    name: 'nobids / bids',
-                    data: {{ratioData}}
+                    name: 'nobids/bids',
+                    data: ratioData
+                },
+                {
+                    name: 'avg(nobids/bids)',
+                    data: avgRatioData
                 }
             ]
         });

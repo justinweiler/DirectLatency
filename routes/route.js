@@ -292,6 +292,37 @@ function getRenderStateData(dateStart, dateEnd, series)
     return renderState;
 }
 
+function saveAllStateData()
+{
+    fs.writeFile(
+        timingsFile,
+        JSON.stringify(
+            {
+                cumulative: cumulative,
+                heat: heat
+            }
+        ),
+        function (err)
+        {
+            if (err)
+            {
+                console.log('Timings save error: ' + err);
+            }
+        }
+    );
+}
+
+function loadAllStateData()
+{
+    if (fs.existsSync(timingsFile))
+    {
+        var savedJSON = fs.readFileSync(timingsFile);
+        var savedObj = JSON.parse(savedJSON);
+        cumulative = savedObj.cumulative;
+        heat = savedObj.heat;
+    }
+}
+
 function getStatusHandler(req, res)
 {
     var dateStart   = req.params.dateStart  || 'CUMULATIVE';
@@ -457,30 +488,7 @@ function setNoCaptureHandler(req, res)
 
 capture();
 addHeatState();
-
-var chunkTimer = setInterval(
-    function()
-    {
-        addHeatState();
-        fs.writeFile(
-            timingsFile,
-            JSON.stringify(
-                {
-                    cumulative: cumulative,
-                    heat: heat
-                }
-            ),
-            function (err)
-            {
-                if (err)
-                {
-                    console.log('Timings save error: ' + err);
-                }
-            }
-        );
-    },
-    chunkSize * 60 * 1000
-);
+loadAllStateData();
 
 router.route('/')
     .get(getIdCookieHandler)
@@ -516,15 +524,16 @@ router.get(
     setNoCaptureHandler
 );
 
-if (fs.existsSync(timingsFile))
-{
-    var savedJSON = fs.readFileSync(timingsFile);
-    var savedObj = JSON.parse(savedJSON);
-    cumulative = savedObj.cumulative;
-    heat = savedObj.heat;
-}
+var chunkTimer = setInterval(
+    function()
+    {
+        addHeatState();
+        saveAllStateData();
+    },
+    chunkSize * 60 * 1000
+);
 
-/* TEST DATA
+/*TEST DATA
 function mockData(state, i, bids, nobids)
 {
     state.bids = bids + (i % 100);
@@ -542,6 +551,8 @@ for (var i = heatRange - 1; i >= 0; i--)
 {
     mockData(addHeatState(), i, 111, 11).date -= chunkSize * 60 * 1000 * (i + 1);
 }
+
+saveAllStateData();
 */
 
 module.exports = router;

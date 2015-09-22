@@ -180,7 +180,7 @@
             tooltip: {
                 formatter: function () {
                     return H.dateFormat('%m-%d-%y %H:%M', this.point.x) +
-                        ' saw ' + this.point.y + ' occurrences';
+                        ' saw ' + Math.round(this.point.y) + ' occurrences';
                 }
             },
             series: [

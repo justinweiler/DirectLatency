@@ -14,6 +14,7 @@ var maxBins     = 26;
 var maxDays     = 7;
 var hourChunks  = 60 / chunkSize;
 var heatRange   = maxDays * 24 * hourChunks;
+var timingsFile = './timings.json';
 
 function createNewState()
 {
@@ -206,6 +207,14 @@ function getRenderStateData(dateStart, dateEnd, series)
     renderState.cumulative  = useCumulative;
     renderState.heatName    = series;
     renderState.heatData    = 'Date,Bin,Val\n';
+    renderState.source      = series.split(':')[0];
+
+    var nobidData = [];
+    var bidData = [];
+    var ratioData = [];
+
+    var nobidSeries = renderState.source + ':nobid';
+    var bidSeries = renderState.source + ':bid';
 
     for (var i = start; i <= end; i++)
     {
@@ -244,9 +253,41 @@ function getRenderStateData(dateStart, dateEnd, series)
         {
             renderState.heatData += chunkState.date + ',' + j + ',' + normalChunkData[j] + '\n';
         }
+
+        var totalBids = 0;
+        var totalNobids = 0;
+
+        for (var j = 0; j < chunkState.series.length; j++)
+        {
+            var chunkStateSeries = chunkState.series[j];
+
+            if (chunkStateSeries.name == nobidSeries)
+            {
+                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                {
+                    totalNobids += chunkStateSeries.data[k];
+                }
+
+                nobidData.push([chunkState.date, totalNobids]);
+            }
+            else if (chunkStateSeries.name == bidSeries)
+            {
+                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                {
+                    totalBids += chunkStateSeries.data[k];
+                }
+
+                bidData.push([chunkState.date, totalBids]);
+            }
+        }
+
+        ratioData.push([chunkState.date, totalNobids / totalBids])
     }
 
-    renderState.histoData = JSON.stringify(renderState.series);
+    renderState.histoData   = JSON.stringify(renderState.series);
+    renderState.nobidData   = JSON.stringify(nobidData);
+    renderState.bidData     = JSON.stringify(bidData);
+    renderState.ratioData   = JSON.stringify(ratioData);
 
     return renderState;
 }
@@ -397,6 +438,7 @@ function resetStateHandler(req, res)
     addHeatState();
     chunkTimer = setInterval(addHeatState, chunkSize * 60 * 1000);
     res.redirect('/cnc/status');
+    fs.unlinkSync(timingsFile);
 }
 
 function setCaptureHandler(req, res)
@@ -415,7 +457,30 @@ function setNoCaptureHandler(req, res)
 
 capture();
 addHeatState();
-var chunkTimer = setInterval(addHeatState, chunkSize * 60 * 1000);
+
+var chunkTimer = setInterval(
+    function()
+    {
+        addHeatState();
+        fs.writeFile(
+            timingsFile,
+            JSON.stringify(
+                {
+                    cumulative: cumulative,
+                    heat: heat
+                }
+            ),
+            function (err)
+            {
+                if (err)
+                {
+                    console.log('Timings save error: ' + err);
+                }
+            }
+        );
+    },
+    chunkSize * 60 * 1000
+);
 
 router.route('/')
     .get(getIdCookieHandler)
@@ -450,6 +515,14 @@ router.get(
     '/nocapture',
     setNoCaptureHandler
 );
+
+if (fs.existsSync(timingsFile))
+{
+    var savedJSON = fs.readFileSync(timingsFile);
+    var savedObj = JSON.parse(savedJSON);
+    cumulative = savedObj.cumulative;
+    heat = savedObj.heat;
+}
 
 /* TEST DATA
 function mockData(state, i, bids, nobids)

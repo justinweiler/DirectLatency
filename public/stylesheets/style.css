@@ -1,8 +1,29 @@
+html {
+    width: 1265px;
+}
+
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
-  color: #00B7FF;
+    color: #00B7FF;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.compositeDiv {
+    width:      570px;
+    height:     700px;
+    overflow:   hidden;
+}
+
+.compositeFrame {
+    width:                    640px;
+    height:                   800px;
+    zoom:                     2.00;
+    -webkit-transform:        scale(0.40);
+    -webkit-transform-origin: 0 0;
+    overflow:                 hidden;
 }

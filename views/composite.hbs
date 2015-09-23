@@ -1,0 +1,41 @@
+<table/>
+<script>
+    (function ()
+    {
+        datacenters = ('{{{datacenters}}}').split(',');
+
+        var row;
+        var table = document.getElementsByTagName("table")[0];
+
+        for (var i = 0; i < datacenters.length; i++)
+        {
+            var pieces = datacenters[i].split('|');
+            var description = pieces[0];
+            var datacenter = pieces[1];
+
+            var frm = document.createElement("iframe");
+            frm.className = 'compositeFrame';
+            frm.src = datacenter;
+
+            var lnk = document.createElement('a');
+            lnk.href = datacenter;
+            lnk.innerHTML = description;
+
+            var div = document.createElement("div");
+            div.className = 'compositeDiv';
+            div.appendChild(lnk);
+            div.appendChild(frm);
+
+            var td = document.createElement("td");
+            td.appendChild(div);
+
+            if (i % 2 == 0)
+            {
+                row = document.createElement("tr");
+                table.appendChild(row);
+            }
+
+            row.appendChild(td);
+        }
+    })();
+</script>

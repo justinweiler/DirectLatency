@@ -448,9 +448,14 @@ function postMetricsHandler(req, res)
     );
 }
 
+function compositeHandler(req, res)
+{
+    res.render('composite', {datacenters: config.datacenters});
+}
+
 function getIdCookieHandler(req, res)
 {
-    var id = "ffffffffffffffff";
+    var id = "fffffffffffffff" + config.datacenterId;
     var possible = "abcdef0123456789";
 
     for (var i = 0; i < 16; i++)
@@ -522,6 +527,11 @@ router.get(
 router.get(
     '/nocapture',
     setNoCaptureHandler
+);
+
+router.get(
+    '/composite',
+    compositeHandler
 );
 
 var chunkTimer = setInterval(

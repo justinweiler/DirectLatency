@@ -58,7 +58,7 @@ function loopFinish(err)
 
 function makeId()
 {
-    var txid     = "ffffffffffffffff";
+    var txid     = "fffffffffffffff" + config.datacenterId;
     var possible = "abcdef0123456789";
 
     for (var i = 0; i < 16; i++)

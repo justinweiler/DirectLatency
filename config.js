@@ -9,7 +9,8 @@ module.exports.datacenters = [
     'Singapore|http://54.254.201.180/cnc/status',
     'Frankfurt|http://52.28.93.207/cnc/status',
     'Sao Paulo|http://54.207.29.97/cnc/status',
-    'Virginia|http://52.23.201.66/cnc/status'
+    'Virginia|http://52.23.201.66/cnc/status',
+    'California|http://54.215.214.89/cnc/status'
 ];
 
 if (typeof module.exports.port === 'number')

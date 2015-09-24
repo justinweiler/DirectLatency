@@ -6,7 +6,10 @@ module.exports.datacenterId = '0'; // single character 0-f
 
 module.exports.datacenters = [
     'Oregon|http://52.26.78.96/cnc/status',
-    'Singapore|http://54.254.201.180/cnc/status'
+    'Singapore|http://54.254.201.180/cnc/status',
+    'Frankfurt|http://52.28.93.207/cnc/status',
+    'Sao Paulo|http://54.207.29.97/cnc/status',
+    'Virginia|http://52.23.201.66/cnc/status'
 ];
 
 if (typeof module.exports.port === 'number')

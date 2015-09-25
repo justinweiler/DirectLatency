@@ -208,7 +208,7 @@ function getRenderStateData(dateStart, dateEnd, series)
     renderState.heatName    = series;
     renderState.heatData    = 'Date,Bin,Val\n';
     renderState.source      = series.split(':')[0];
-    renderState.ratio       = (renderState.nobids / renderstate.bids).toString().substring(0, 5);
+    renderState.ratio       = (renderState.nobids / renderState.bids).toString().substring(0, 5);
     var nobidData = [];
     var bidData = [];
     var ratioData = [];

@@ -1,9 +1,9 @@
 <div style="border-width:1px; border-style:solid; height: 150px; width: 1200px;">
     <h2 style="margin: 10px;">Summary</h2>
     <label style="margin: 20px;">bids: {{bids}}</label><br/>
-    <label style="margin: 20px;">impr: {{impr}}</label><br/>
     <label style="margin: 20px;">nobids: {{nobids}}</label><br/>
-    <label style="margin: 20px;">nobids/bids: {{ratio}}</label><br/>
+    <label style="margin: 20px;">nobids ratio: {{ratio}}</label><br/>
+    <label style="margin: 20px;">impressions: {{impr}}</label><br/>
     <label style="margin: 20px;">fails: {{fails}}</label><br/>
     <label style="margin: 20px;">capturing: {{capture}}</label><br/>
 </div>
@@ -46,6 +46,7 @@
     var ratioData       = {{ratioData}};
     var bidData         = {{bidData}};
     var nobidData       = {{nobidData}};
+    var failData        = {{failData}};
     var avgRatioData    = mav(ratioData, 18);
     var avgBidData      = mav(bidData, 18);
     var avgNobidData    = mav(nobidData, 18);
@@ -89,7 +90,7 @@
                 type: 'bar'
             },
             title: {
-                text: 'Direct Latencies ' + dateRange1,
+                text: '<b>Direct Latencies</b> ' + dateRange1,
                 align: 'left'
             },
             xAxis: {
@@ -135,8 +136,8 @@
 
         $('#container2').highcharts({
             title: {
-                text: '{{{source}}} bids and nobids: ' + dateRange2,
-                x: -20 //center
+                text: '<b>{{{source}}}</b> bids and nobids: ' + dateRange2,
+                align: 'left'
             },
             xAxis: {
                 type: 'datetime',
@@ -190,7 +191,7 @@
                     data: bidData
                 },
                 {
-                    name: 'avg(bids)',
+                    name: 'avg bids',
                     data: avgBidData
                 },
                 {
@@ -198,16 +199,20 @@
                     data: nobidData
                 },
                 {
-                    name: 'avg(nobids)',
+                    name: 'avg nobids',
                     data: avgNobidData
+                },
+                {
+                    name: 'fails',
+                    data: failData
                 }
             ]
         });
 
         $('#container3').highcharts({
             title: {
-                text: '{{{source}}} nobids/bids: ' + dateRange2,
-                x: -20 //center
+                text: '<b>{{{source}}}</b> nobids ratio: ' + dateRange2,
+                align: 'left'
             },
             xAxis: {
                 type: 'datetime',
@@ -257,11 +262,11 @@
             },
             series: [
                 {
-                    name: 'nobids/bids',
+                    name: 'nobids ratio',
                     data: ratioData
                 },
                 {
-                    name: 'avg(nobids/bids)',
+                    name: 'avg nobids ratio',
                     data: avgRatioData
                 }
             ]
@@ -342,7 +347,7 @@
                 margin: [40, 0, 115, 90]
             },
             title: {
-                text: '{{{heatName}}} '+ dateRange2,
+                text: '<b>{{{heatName}}}</b> frequency map: '+ dateRange2,
                 align: 'left'
             },
             yAxis: {

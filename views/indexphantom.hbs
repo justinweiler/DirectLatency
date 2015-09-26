@@ -89,12 +89,12 @@
 
                             if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
                             {
-                                post.pqlatency = asiPreQualEnd - asiPreQualStart;
+                                post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
                             }
 
                             if (typeof asiImpEnd != "undefined" && typeof asiImpStart != "undefined")
                             {
-                                post.implatency = [asiImpEnd - asiImpStart];
+                                post.implatency = [{duration: asiImpEnd - asiImpStart}];
                             }
 
                             postBackMetrics(
@@ -118,7 +118,7 @@
 
                     if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
                     {
-                        post.pqlatency = asiPreQualEnd - asiPreQualStart
+                        post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
                     }
 
                     postBackMetrics(
@@ -137,11 +137,11 @@
 
         if (typeof asiPlacement == "undefined")
         {
-            var post = {failed: true};
+            var post = {fail: true};
 
             if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
             {
-                post.pqlatency = asiPreQualEnd - asiPreQualStart
+                post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
             }
 
             postBackMetrics(

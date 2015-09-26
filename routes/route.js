@@ -43,11 +43,11 @@ function activeHeatState()
 
 function resetState(state)
 {
-    state.bids      = 0;
-    state.impr      = 0;
-    state.nobids    = 0;
-    state.fails     = 0;
-    state.series    = [];
+    state.bids       = 0;
+    state.impr       = 0;
+    state.nobids     = 0;
+    state.fails      = 0;
+    state.dataSeries = [];
 }
 
 function capture()
@@ -60,7 +60,7 @@ function noCapture()
     cumulative.capture = false;
 }
 
-function createNewArray()
+function createNewDataArray()
 {
     var array = [];
 
@@ -72,61 +72,99 @@ function createNewArray()
     return array;
 }
 
-function createNewSeries(state, series)
+function createNewDataSeries(state, name)
 {
-    var newSeries = {
-            name: series,
-            data: createNewArray()
+    var newDataSeries = {
+            name: name,
+            data: createNewDataArray()
         };
 
-    state.series.push(newSeries);
+    state.dataSeries.push(newDataSeries);
 
-    return newSeries;
+    return newDataSeries;
 }
 
-function addStateData(aggregated, state)
+function aggregateState(aggregatedState, state)
 {
-    aggregated.bids     += state.bids;
-    aggregated.impr     += state.impr;
-    aggregated.nobids   += state.nobids;
-    aggregated.fails    += state.fails;
+    aggregatedState.bids     += state.bids;
+    aggregatedState.impr     += state.impr;
+    aggregatedState.nobids   += state.nobids;
+    aggregatedState.fails    += state.fails;
 
-    for (var i = 0; i < state.series.length; i++)
+    for (var i = 0; i < state.dataSeries.length; i++)
     {
-        var stateSeries = state.series[i];
-        var aggregatedSeries;
+        var stateDataSeries = state.dataSeries[i];
+        var aggregatedDataSeries;
 
-        for (var j = 0; j < aggregated.series.length; j++)
+        for (var j = 0; j < aggregatedState.dataSeries.length; j++)
         {
-            aggregatedSeries = aggregated.series[j];
+            aggregatedDataSeries = aggregatedState.dataSeries[j];
 
-            if (aggregatedSeries.name == stateSeries.name)
+            if (aggregatedDataSeries.name == stateDataSeries.name)
             {
                 break;
             }
             else
             {
-                aggregatedSeries = undefined;
+                aggregatedDataSeries = undefined;
             }
         }
 
-        if (aggregatedSeries == undefined)
+        if (aggregatedDataSeries == undefined)
         {
-            aggregatedSeries = createNewSeries(aggregated, stateSeries.name);
+            aggregatedDataSeries = createNewDataSeries(aggregatedState, stateDataSeries.name);
         }
 
-        for (var j = 0; j < aggregatedSeries.data.length; j++)
+        for (var j = 0; j < aggregatedDataSeries.data.length; j++)
         {
-            aggregatedSeries.data[j] += stateSeries.data[j];
+            aggregatedDataSeries.data[j] += stateDataSeries.data[j];
         }
     }
 }
 
-function captureData(state, series, latency, blob, callback)
+function accumulateTrackedDataSeries(state, rootName, latencyRecord, blob, callback)
 {
-    for (var i = 0; i < state.series.length; i++)
+    for (var aspect in latencyRecord)
     {
-        if (series == state.series[i].name)
+        var aspectName = undefined;
+        var latency = latencyRecord[aspect];
+
+        switch (aspect)
+        {
+            case 'duration':    aspectName = rootName;          break;
+            case 'dns':         aspectName = rootName + ':d';   break;
+            case 'connection':  aspectName = rootName + ':c';   break;
+            case 'response':    aspectName = rootName + ':r';   break;
+            default:                                            break;
+        }
+
+        if (aspectName)
+        {
+            accumulateDataSeries(state, aspectName, latency);
+        }
+    }
+
+    if (state.capture)
+    {
+        return fs.appendFile(
+            config.out, 
+            rootName + ',' +
+            JSON.stringify(latencyRecord) + ',' + 
+            blob + '\n', 
+            undefined, 
+            callback);
+    }
+    else
+    {
+        return callback();
+    }
+}
+
+function accumulateDataSeries(state, name, latency)
+{
+    for (var i = 0; i < state.dataSeries.length; i++)
+    {
+        if (name == state.dataSeries[i].name)
         {
             var bin = Math.floor(latency / binSize);
 
@@ -139,35 +177,29 @@ function captureData(state, series, latency, blob, callback)
                 bin = maxBins - 1;
             }
 
-            state.series[i].data[bin]++;
+            state.dataSeries[i].data[bin]++;
 
-            if (state.capture)
-            {
-                return fs.appendFile(config.out, series + ',' + latency + ',' + blob + '\n', undefined, callback);
-            }
-            else
-            {
-                return callback();
-            }
+            return;
         }
     }
 
-    createNewSeries(state, series);
-    captureData(state, series, latency, blob, callback);
+    createNewDataSeries(state, name);
+    accumulateDataSeries(state, name, latency);
 }
 
-function getRenderStateData(dateStart, dateEnd, series)
+function getRenderStateData(dateStart, dateEnd, name)
 {
     var renderState     = createNewState();
     var useCumulative   = dateStart == 'CUMULATIVE' || dateEnd == 'CUMULATIVE';
     var start           = 0;
     var end             = heat.length - 1;
 
+    // use cumulative summary stats, start and end equal heat array bounds
     if (useCumulative)
     {
         renderState = JSON.parse(JSON.stringify(cumulative));
     }
-    else
+    else // figure out date range indices, start and end may differ from heat array bounds
     {
         var foundStart = false;
 
@@ -205,50 +237,82 @@ function getRenderStateData(dateStart, dateEnd, series)
     renderState.maxBins     = maxBins;
     renderState.chunkSize   = chunkSize;
     renderState.cumulative  = useCumulative;
-    renderState.heatName    = series;
+    renderState.heatName    = name;
     renderState.heatData    = 'Date,Bin,Val\n';
-    renderState.source      = series.split(':')[0];
-    renderState.ratio       = (renderState.nobids / renderState.bids).toString().substring(0, 5);
+    renderState.source      = name.split(':')[0];
+
+    if (renderState.bids || renderState.nobids)
+    {
+        renderState.ratio = (renderState.nobids / (renderState.bids + renderState.nobids)).toString().substring(0, 5);
+    }
+    else
+    {
+        renderState.ratio = '0.000';
+    }
+
     var nobidData = [];
     var bidData = [];
+    var failData = [];
     var ratioData = [];
+    var histoData = [];
 
-    var nobidSeries = renderState.source + ':nobid';
-    var bidSeries = renderState.source + ':bid';
+    var nobidSeriesName = renderState.source + ':nobid';
+    var bidSeriesName = renderState.source + ':bid';
+    var failSeriesName = renderState.source + ':fail';
 
+    // extract histo data for durations where aspect series like (-d, -c, -r) is excluded
+    for (var i = 0; i < renderState.dataSeries.length; i++)
+    {
+        var testName = renderState.dataSeries[i].name;
+
+        if (testName.indexOf(':bid:') == -1 &&
+            testName.indexOf(':nobid:') == -1 &&
+            testName.indexOf(':fail:') == -1)
+        {
+            histoData.push(renderState.dataSeries[i]);
+        }
+    }
+
+    // extract heat data for range
     for (var i = start; i <= end; i++)
     {
         var chunkState = heat[i];
 
-        var normalChunkData = createNewArray();
+        var normalChunkData = createNewDataArray();
 
+        // if not using cumulative then
+        //      grab summary stats over range
+        // else
+        //      render state already contains everything recorded by cumulative state
         if (!useCumulative)
         {
-            addStateData(renderState, chunkState);
+            aggregateState(renderState, chunkState);
         }
 
-        for (var j = 0; j < chunkState.series.length; j++)
+        // normalize each chunk in target series
+        for (var j = 0; j < chunkState.dataSeries.length; j++)
         {
-            var chunkStateSeries = chunkState.series[j];
+            var chunkDataSeries = chunkState.dataSeries[j];
 
-            if (chunkStateSeries.name == series)
+            if (chunkDataSeries.name == name)
             {
                 var total = 0;
 
-                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                for (var k = 0; k < chunkDataSeries.data.length; k++)
                 {
-                    total += chunkStateSeries.data[k];
+                    total += chunkDataSeries.data[k];
                 }
 
-                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                for (var k = 0; k < chunkDataSeries.data.length; k++)
                 {
-                    normalChunkData[k] = Math.ceil((chunkStateSeries.data[k] * 100) / total);
+                    normalChunkData[k] = Math.ceil((chunkDataSeries.data[k] * 100) / total);
                 }
 
                 break;
             }
         }
 
+        // append heat data string
         for (var j = 0; j < normalChunkData.length; j++)
         {
             renderState.heatData += chunkState.date + ',' + j + ',' + normalChunkData[j] + '\n';
@@ -256,37 +320,56 @@ function getRenderStateData(dateStart, dateEnd, series)
 
         var totalBids = 0;
         var totalNobids = 0;
+        var totalFails = 0;
 
-        for (var j = 0; j < chunkState.series.length; j++)
+        // extract bid, nobid and ratio data for range
+        for (var j = 0; j < chunkState.dataSeries.length; j++)
         {
-            var chunkStateSeries = chunkState.series[j];
+            var chunkDataSeries = chunkState.dataSeries[j];
 
-            if (chunkStateSeries.name == nobidSeries)
+            if (chunkDataSeries.name == nobidSeriesName)
             {
-                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                for (var k = 0; k < chunkDataSeries.data.length; k++)
                 {
-                    totalNobids += chunkStateSeries.data[k];
+                    totalNobids += chunkDataSeries.data[k];
                 }
 
                 nobidData.push([chunkState.date, totalNobids]);
             }
-            else if (chunkStateSeries.name == bidSeries)
+            else if (chunkDataSeries.name == bidSeriesName)
             {
-                for (var k = 0; k < chunkStateSeries.data.length; k++)
+                for (var k = 0; k < chunkDataSeries.data.length; k++)
                 {
-                    totalBids += chunkStateSeries.data[k];
+                    totalBids += chunkDataSeries.data[k];
                 }
 
                 bidData.push([chunkState.date, totalBids]);
             }
+            else if (chunkDataSeries.name == failSeriesName)
+            {
+                for (var k = 0; k < chunkDataSeries.data.length; k++)
+                {
+                    totalFails += chunkDataSeries.data[k];
+                }
+
+                failData.push([chunkState.date, totalFails]);
+            }
         }
 
-        ratioData.push([chunkState.date, totalNobids / totalBids])
+        if (totalBids || totalNobids)
+        {
+            ratioData.push([chunkState.date, totalNobids / (totalBids + totalNobids)])
+        }
+        else
+        {
+            ratioData.push([chunkState.date, 0]);
+        }
     }
 
-    renderState.histoData   = JSON.stringify(renderState.series);
+    renderState.histoData   = JSON.stringify(histoData);
     renderState.nobidData   = JSON.stringify(nobidData);
     renderState.bidData     = JSON.stringify(bidData);
+    renderState.failData    = JSON.stringify(failData);
     renderState.ratioData   = JSON.stringify(ratioData);
 
     return renderState;
@@ -327,7 +410,12 @@ function getStatusHandler(req, res)
 {
     var dateStart   = req.params.dateStart  || 'CUMULATIVE';
     var dateEnd     = req.params.dateEnd    || dateStart;
-    var series      = req.params.series     || 'Canary-P:bid';
+    var name        = req.params.name       || 'Canary-P:bid';
+
+    if (name.indexOf(':') == -1)
+    {
+        name += ':bid';
+    }
 
     if (dateEnd == 'now')
     {
@@ -343,13 +431,14 @@ function getStatusHandler(req, res)
         dateStart = Date.parse(dateStart + 'Z');
     }
 
-    res.render('cnc', getRenderStateData(dateStart, dateEnd, series));
+    res.render('cnc', getRenderStateData(dateStart, dateEnd, name));
 }
 
 function postMetricsHandler(req, res)
 {
     var result;
 
+    // increment state statistics
     if (req.body.bid)
     {
         result = ':bid';
@@ -362,11 +451,16 @@ function postMetricsHandler(req, res)
         cumulative.nobids++;
         activeHeatState().nobids++;
     }
-    else if (req.body.failed)
+    else if (req.body.fail)
     {
         result = ':fail';
         cumulative.fails++;
         activeHeatState().fails++;
+    }
+    else
+    {
+        res.status = 500;
+        return res.end('invalid post');
     }
 
     req.body.blob = req.body.blob || '';
@@ -382,7 +476,7 @@ function postMetricsHandler(req, res)
                     [cumulative, activeHeatState()],
                     function (state, eCallback)
                     {
-                        captureData(
+                        accumulateTrackedDataSeries(
                             state,
                             req.body.source + result,
                             req.body.pqlatency,
@@ -403,20 +497,20 @@ function postMetricsHandler(req, res)
             cumulative.impr++;
             activeHeatState().impr++;
 
-            var latency = req.body.implatency[i];
+            var implatency = req.body.implatency[i];
 
             tasks.push(
-                (function createTask(latency){
+                (function createTask(implatency){
                     return function (callback)
                     {
                         async.each(
                             [cumulative, activeHeatState()],
                             function (state, eCallback)
                             {
-                                captureData(
+                                accumulateTrackedDataSeries(
                                     state,
                                     req.body.source + ':imp',
-                                    latency,
+                                    implatency,
                                     req.body.blob,
                                     eCallback
                                 );
@@ -424,7 +518,7 @@ function postMetricsHandler(req, res)
                             callback
                         );
                     }
-                })(latency)
+                })(implatency)
             );
         }
     }
@@ -500,12 +594,12 @@ router.route('/')
     .post(postMetricsHandler);
 
 router.get(
-    '/status/:series',
+    '/status/:name',
     getStatusHandler
 );
 
 router.get(
-    '/status/:series/:dateStart/:dateEnd',
+    '/status/:name/:dateStart/:dateEnd',
     getStatusHandler
 );
 
@@ -543,26 +637,41 @@ var chunkTimer = setInterval(
     chunkSize * 60 * 1000
 );
 
-/*TEST DATA
+/*
+//TEST DATA
 function mockData(state, i, bids, nobids)
 {
     state.bids = bids + (i % 100);
     state.nobids = nobids + (i % 100);
-    createNewSeries(state, 'Canary-P:bid').data[i % maxBins] = state.bids;
-    createNewSeries(state, 'Canary-P:nobid').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+    state.fails = 77;
+    createNewDataSeries(state, 'Canary-P:bid').data[i % maxBins] = state.bids;
+    createNewDataSeries(state, 'Canary-P:bid:d').data[i % maxBins] = state.bids;
+    createNewDataSeries(state, 'Canary-P:bid:c').data[i % maxBins] = state.bids;
+    createNewDataSeries(state, 'Canary-P:bid:r').data[i % maxBins] = state.bids;
+
+    createNewDataSeries(state, 'Canary-P:nobid').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+    createNewDataSeries(state, 'Canary-P:nobid:d').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+    createNewDataSeries(state, 'Canary-P:nobid:c').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+    createNewDataSeries(state, 'Canary-P:nobid:r').data[(i + Math.floor(maxBins / 2)) % maxBins] = state.nobids;
+
+    createNewDataSeries(state, 'Canary-P:fail').data[(i + Math.floor(maxBins / 3)) % maxBins] = state.fails;
+    createNewDataSeries(state, 'Canary-P:fail:d').data[(i + Math.floor(maxBins / 3)) % maxBins] = state.fails;
+    createNewDataSeries(state, 'Canary-P:fail:c').data[(i + Math.floor(maxBins / 3)) % maxBins] = state.fails;
+    createNewDataSeries(state, 'Canary-P:fail:r').data[(i + Math.floor(maxBins / 3)) % maxBins] = state.fails;
 
     return state;
 }
 
+// mock cumulative
+cumulative = createNewState();
 mockData(cumulative, 0, 1111, 111);
-heat.splice(0, 1);
 
+// mock heat
+heat = [];
 for (var i = heatRange - 1; i >= 0; i--)
 {
     mockData(addHeatState(), i, 111, 11).date -= chunkSize * 60 * 1000 * (i + 1);
 }
-
-saveAllStateData();
 */
 
 module.exports = router;

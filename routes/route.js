@@ -663,6 +663,7 @@ var chunkTimer = setInterval(
     chunkSize * 60 * 1000
 );
 
+/*
 //TEST DATA
 function mockData(state, i, bid, nobid, fail)
 {
@@ -741,5 +742,6 @@ for (var i = heatRange - 1; i >= 0; i--)
     state.date = cumulative.date - (chunkSize * 60 * 1000 * (i + 1));
     aggregateState(cumulative, state, undefined, false);
 }
+*/
 
 module.exports = router;

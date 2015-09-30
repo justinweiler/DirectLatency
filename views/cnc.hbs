@@ -1,11 +1,44 @@
-<div style="border-width:1px; border-style:solid; height: 150px; width: 1200px;">
-    <h2 style="margin: 10px;">{{{histosource}}} Summary</h2>
-    <label style="margin: 20px;">bids: {{bid}}</label><br/>
-    <label style="margin: 20px;">nobids: {{nobid}}</label><br/>
-    <label style="margin: 20px;">bid ratio: {{ratio}}</label><br/>
-    <label style="margin: 20px;">impressions: {{impr}}</label><br/>
-    <label style="margin: 20px;">fails: {{fail}}</label><br/>
-    <label style="margin: 20px;">capturing: {{capture}}</label><br/>
+<div style="border-width:1px; border-style:solid; height: 200px; width: 1200px;">
+    <table>
+        <tr>
+            <td>
+                <div style="height: 180px; width: 600px; margin-left: 10px;">
+                    <h2>{{{histosource}}} Summary</h2>
+                    <table>
+                        <tr><td><b>bids:</b></td><td>{{bid}}</td></tr>
+                        <tr><td><b>nobids:</b></td><td>{{nobid}}</td></tr>
+                        <tr><td><b>bid ratio:</b></td><td>{{ratio}}</td></tr>
+                        <tr><td><b>impressions:</b></td><td>{{impr}}</td></tr>
+                        <tr><td><b>fails:</b></td><td>{{fail}}</td></tr>
+                        <tr><td><b>capturing:</b></td><td>{{capture}}</td></tr>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div style="height: 180px; width:300px; border-left: 1px solid #DDDDDD;">
+                    <div style="margin-left: 10px">
+                        <b>ALL Sources:</b>
+                        <ul style="height:136px; width:200px; overflow:auto;">
+                            <li onclick="location.href = '/cnc/status'">ALL</li>
+                            {{#each sourceNames as |name|}}
+                                <li onclick="location.href = '/cnc/status/{{{name}}}'">{{{name}}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div style="height: 180px; width:300px;">
+                    <b>ALL Series:</b>
+                    <ul style="height:136px; width:200px; overflow:auto;">
+                        {{#each seriesNames as |name|}}
+                            <li onclick="location.href = '/cnc/status/{{{name}}}'">{{{name}}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>
 <br/>
 <div id="container1" style="border-width:1px; border-style:solid; height: 600px; width: 1200px; margin: 0 auto"></div>

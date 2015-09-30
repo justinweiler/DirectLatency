@@ -13,6 +13,11 @@ a {
     margin-bottom: 10px;
 }
 
+li {
+    color: #00B7FF;
+    cursor: pointer;
+}
+
 .compositeDiv {
     width:      570px;
     height:     700px;

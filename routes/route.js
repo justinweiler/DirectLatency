@@ -16,21 +16,41 @@ var hourChunks  = 60 / chunkSize;
 var heatRange   = maxDays * 24 * hourChunks;
 var timingsFile = './timings.json';
 
+function getSeriesNames(state)
+{
+    var seriesNames = {};
+
+    for (var i = 0; i < state.dataSeries.length; i++)
+    {
+        var name = state.dataSeries[i].name;
+        seriesNames[name] = true;
+    }
+
+    var seriesArray = [];
+
+    for (var name in seriesNames)
+    {
+        seriesArray.push(name);
+    }
+
+    return seriesArray;
+}
+
 function getSourceNames(state)
 {
     var sourceNames = {};
 
     for (var i = 0; i < state.dataSeries.length; i++)
     {
-        var testName = state.dataSeries[i].name;
-        sourceNames[testName.split(':')[0]] = true;
+        var name = state.dataSeries[i].name;
+        sourceNames[name.split(':')[0]] = true;
     }
 
     var sourceArray = [];
 
-    for (var sr in sourceNames)
+    for (var name in sourceNames)
     {
-        sourceArray.push(sr);
+        sourceArray.push(name);
     }
 
     return sourceArray;
@@ -298,7 +318,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
 
     renderState.dateStart   = heat[start].date;
     renderState.dateEnd     = heat[end].date;
-    renderState.capture     = cumulative.capture;
+    renderState.capture     = cumulative.capture == true;
     renderState.binSize     = binSize;
     renderState.maxBins     = maxBins;
     renderState.chunkSize   = chunkSize;
@@ -385,6 +405,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     }
 
     renderState.sourceNames = getSourceNames(cumulative);
+    renderState.seriesNames = getSeriesNames(cumulative);
     renderState.histoData   = JSON.stringify(renderState.dataSeries);
     renderState.nobidData   = JSON.stringify(nobidData);
     renderState.bidData     = JSON.stringify(bidData);
@@ -419,10 +440,10 @@ function loadAllStateData()
 {
     if (fs.existsSync(timingsFile))
     {
-        var savedJSON = fs.readFileSync(timingsFile);
-        var savedObj = JSON.parse(savedJSON);
-        cumulative = savedObj.cumulative;
-        heat = savedObj.heat;
+        var savedJSON   = fs.readFileSync(timingsFile);
+        var savedObj    = JSON.parse(savedJSON);
+        cumulative      = savedObj.cumulative;
+        heat            = savedObj.heat;
     }
 }
 
@@ -679,10 +700,10 @@ function mockData(state, i, bid, nobid, fail)
     var nobidx = state.nobid - nobidp;
 
     var imprp = Math.floor(state.impr / 2);
-    var imprx = state.impr - bidp;
+    var imprx = state.impr - imprp;
 
     var failp = Math.floor(state.fail / 2);
-    var failx = state.fail - bidp;
+    var failx = state.fail - failp;
     
     createNewDataSeries(state, 'Canary-P:bid').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
     createNewDataSeries(state, 'Canary-P:bid:d').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;

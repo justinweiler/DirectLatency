@@ -1,10 +1,10 @@
 <div style="border-width:1px; border-style:solid; height: 150px; width: 1200px;">
-    <h2 style="margin: 10px;">Summary</h2>
-    <label style="margin: 20px;">bids: {{bids}}</label><br/>
-    <label style="margin: 20px;">nobids: {{nobids}}</label><br/>
-    <label style="margin: 20px;">nobids ratio: {{ratio}}</label><br/>
+    <h2 style="margin: 10px;">{{{histosource}}} Summary</h2>
+    <label style="margin: 20px;">bids: {{bid}}</label><br/>
+    <label style="margin: 20px;">nobids: {{nobid}}</label><br/>
+    <label style="margin: 20px;">bid ratio: {{ratio}}</label><br/>
     <label style="margin: 20px;">impressions: {{impr}}</label><br/>
-    <label style="margin: 20px;">fails: {{fails}}</label><br/>
+    <label style="margin: 20px;">fails: {{fail}}</label><br/>
     <label style="margin: 20px;">capturing: {{capture}}</label><br/>
 </div>
 <br/>
@@ -90,7 +90,7 @@
                 type: 'bar'
             },
             title: {
-                text: '<b>Direct Latencies</b> ' + dateRange1,
+                text: '<b>{{{histosource}}}</b> Direct Latencies ' + dateRange1,
                 align: 'left'
             },
             xAxis: {
@@ -136,7 +136,7 @@
 
         $('#container2').highcharts({
             title: {
-                text: '<b>{{{source}}}</b> bids and nobids: ' + dateRange2,
+                text: '<b>{{{histosource}}}</b> bids and nobids: ' + dateRange2,
                 align: 'left'
             },
             xAxis: {
@@ -211,7 +211,7 @@
 
         $('#container3').highcharts({
             title: {
-                text: '<b>{{{source}}}</b> nobids ratio: ' + dateRange2,
+                text: '<b>{{{histosource}}}</b> bid ratio: ' + dateRange2,
                 align: 'left'
             },
             xAxis: {
@@ -262,11 +262,11 @@
             },
             series: [
                 {
-                    name: 'nobids ratio',
+                    name: 'bid ratio',
                     data: ratioData
                 },
                 {
-                    name: 'avg nobids ratio',
+                    name: 'avg bid ratio',
                     data: avgRatioData
                 }
             ]

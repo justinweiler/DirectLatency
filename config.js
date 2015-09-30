@@ -1,6 +1,6 @@
 module.exports.out          = '/mnt/metrics/latency.log';
-module.exports.port         = 80;
-module.exports.host         = 'http://52.26.78.96';
+module.exports.port         = 3000;
+module.exports.host         = 'http://localhost';
 module.exports.url          = module.exports.host;
 module.exports.datacenterId = '0'; // single character 0-f
 

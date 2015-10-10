@@ -1,4 +1,5 @@
 var webdriver = require('selenium-webdriver');
+var chrome = require('selenium-webdriver/chrome');
 
 var options = new chrome.Options();
 options.addArguments("load-extension=~/DirectLatency/chrome");

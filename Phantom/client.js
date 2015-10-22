@@ -252,4 +252,4 @@ function visitTestPage(callback)
     );
 }
 
-async.whilst(loopTest, visitTestPage, loopFinish);
+async.whilst(loopTest, visitTestPageUseCNC(), loopFinish);

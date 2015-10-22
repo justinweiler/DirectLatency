@@ -12,7 +12,7 @@ var end = process.argv[3];
 function launchPhantom(callback)
 {
     var cmd = 'phantomjs client.js ' + id + ' ' + end;
-    //console.log('launching ' + cmd);
+    console.log('launching ' + cmd);
     child_process.exec(cmd, undefined, callback);
 }
 

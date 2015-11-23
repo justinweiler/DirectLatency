@@ -79,10 +79,12 @@
     var ratioData       = {{ratioData}};
     var bidData         = {{bidData}};
     var nobidData       = {{nobidData}};
+    var imprData        = {{imprData}};
     var failData        = {{failData}};
     var avgRatioData    = mav(ratioData, 18);
     var avgBidData      = mav(bidData, 18);
     var avgNobidData    = mav(nobidData, 18);
+    var avgImprData     = mav(imprData, 18);
 
     var bins = (function(){
         var ary  = [];
@@ -234,6 +236,14 @@
                 {
                     name: 'avg nobids',
                     data: avgNobidData
+                },
+                {
+                    name: 'impressions',
+                    data: imprData
+                },
+                {
+                    name: 'avg impressions',
+                    data: avgImprData
                 },
                 {
                     name: 'fails',

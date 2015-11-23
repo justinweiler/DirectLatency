@@ -9,7 +9,7 @@ var cumulative = createNewState();
 var heat = [];
 
 var chunkSize   = 10; // make sure this is evenly divisible into 60
-var binSize     = 10; // millisecond
+var binSize     = 20; // millisecond
 var maxBins     = 26;
 var maxDays     = 7;
 var hourChunks  = 60 / chunkSize;
@@ -409,7 +409,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     renderState.histoData   = JSON.stringify(renderState.dataSeries);
     renderState.nobidData   = JSON.stringify(nobidData);
     renderState.bidData     = JSON.stringify(bidData);
-    renderState.imporData   = JSON.stringify(imprData);
+    renderState.imprData    = JSON.stringify(imprData);
     renderState.failData    = JSON.stringify(failData);
     renderState.ratioData   = JSON.stringify(ratioData);
 
@@ -447,11 +447,33 @@ function loadAllStateData()
     }
 }
 
+function createMetricsAggregationTask(source, tsource, timing, blob)
+{
+    return function (callback)
+        {
+            async.each(
+                [cumulative, activeHeatState()],
+                function (state, eCallback)
+                {
+                    accumulateTrackedDataSeries(
+                        state,
+                        source + ':' + tsource,
+                        timing,
+                        blob,
+                        eCallback
+                    );
+                },
+                callback
+            );
+        };
+}
+
 function getStatusHandler(req, res)
 {
+    var sourceNames = getSourceNames(cumulative);
     var dateStart   = req.params.dateStart  || 'CUMULATIVE';
     var dateEnd     = req.params.dateEnd    || dateStart;
-    var name        = req.params.name       || 'Canary-P:bid';
+    var name        = req.params.name       || sourceNames[0] || 'Canary-P';
     var source      = req.params.name;
 
     if (name.indexOf(':') == -1)
@@ -488,19 +510,19 @@ function postMetricsHandler(req, res)
     // increment state statistics
     if (req.body.bid)
     {
-        result = ':bid';
+        result = 'bid';
         cumulative.bid++;
         activeHeatState().bid++;
     }
     else if (req.body.nobid)
     {
-        result = ':nobid';
+        result = 'nobid';
         cumulative.nobid++;
         activeHeatState().nobid++;
     }
     else if (req.body.fail)
     {
-        result = ':fail';
+        result = 'fail';
         cumulative.fail++;
         activeHeatState().fail++;
     }
@@ -514,60 +536,28 @@ function postMetricsHandler(req, res)
 
     var tasks = [];
 
-    if (req.body.pqlatency)
+    for (var i = 0; i < req.body.timings.length; i++)
     {
-        tasks.push(
-            function (callback)
-            {
-                async.each(
-                    [cumulative, activeHeatState()],
-                    function (state, eCallback)
-                    {
-                        accumulateTrackedDataSeries(
-                            state,
-                            req.body.source + result,
-                            req.body.pqlatency,
-                            req.body.blob,
-                            eCallback
-                        );
-                    },
-                    callback
-                );
-            }
-        );
-    }
+        var timing = req.body.timings[i];
 
-    if (req.body.implatency)
-    {
-        for (var i = 0; i < req.body.implatency.length; i++)
+        if (timing.source == 'imp')
         {
             cumulative.impr++;
             activeHeatState().impr++;
-
-            var implatency = req.body.implatency[i];
-
-            tasks.push(
-                (function createTask(implatency){
-                    return function (callback)
-                    {
-                        async.each(
-                            [cumulative, activeHeatState()],
-                            function (state, eCallback)
-                            {
-                                accumulateTrackedDataSeries(
-                                    state,
-                                    req.body.source + ':imp',
-                                    implatency,
-                                    req.body.blob,
-                                    eCallback
-                                );
-                            },
-                            callback
-                        );
-                    }
-                })(implatency)
-            );
         }
+        else if (timing.source == 'pq')
+        {
+            timing.source = result;
+        }
+
+        tasks.push(
+            createMetricsAggregationTask(
+                req.body.source,
+                timing.source,
+                timing,
+                req.body.blob
+            )
+        );
     }
 
     async.parallel(
@@ -685,7 +675,7 @@ var chunkTimer = setInterval(
 );
 
 /*
-//TEST DATA
+//TEST 1 - DATA ARRAYS
 function mockData(state, i, bid, nobid, fail)
 {
     state.bid   = bid + (i % 233);
@@ -763,6 +753,85 @@ for (var i = heatRange - 1; i >= 0; i--)
     state.date = cumulative.date - (chunkSize * 60 * 1000 * (i + 1));
     aggregateState(cumulative, state, undefined, false);
 }
+// TEST 1 ENDS
+
+// TEST 2 - POST HANDLER
+function mockDataPost(source, add)
+{
+    return {
+        source: source,
+        timings: [
+            {
+                source: 'pq',
+                duration: 100 + add,
+                dns: 10,
+                connection: 10,
+                response: 80 + add,
+                size: 14
+            },
+            {
+                source: 'imp',
+                duration: 110 + add,
+                dns: 10,
+                connection: 10,
+                response: 90 + add,
+                size: 14
+            },
+            {
+                source: 'js',
+                duration: 120 + add,
+                dns: 10,
+                connection: 10,
+                response: 100 + add,
+                size: 14
+            },
+            {
+                source: 'pix04',
+                duration: 130 + add,
+                dns: 10,
+                connection: 20,
+                response: 100 + add,
+                size: 14
+            },
+            {
+                source: 'szmvs',
+                duration: 100 + add,
+                dns: 10,
+                connection: 10,
+                response: 80 + add,
+                size: 14
+            },
+            {
+                source: 'szmvd',
+                duration: 50 + add,
+                dns: 10,
+                connection: 10,
+                response: 30 + add,
+                size: 14
+            },
+            {
+                source: 'szmnvd',
+                duration: 60 + add,
+                dns: 10,
+                connection: 10,
+                response: 40 + add,
+                size: 14
+            }
+        ]
+    };
+}
+
+router.get(
+    '/mock/:source',
+    function (req, res)
+    {
+        var source = req.params.source;
+        req.body = mockDataPost(source, Math.random() * 300);
+        req.body.bid = true;
+        postMetricsHandler(req, res);
+    }
+);
+// TEST 2 ENDS
 */
 
 module.exports = router;

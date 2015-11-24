@@ -28,10 +28,12 @@
         post.source = 'Canary-P';
         var http    = new XMLHttpRequest();
         var postStr = JSON.stringify(post);
+
         http.open("POST", "{{{url}}}/cnc", true);
         http.setRequestHeader("Content-type", "application/json");
         http.timeout = 1000;
-        http.onload = callback;
+        http.onload  = callback;
+
         http.send(postStr);
     }
 
@@ -65,6 +67,7 @@
                 if (typeof asiAdGroup != "undefined" && typeof asiBlob != "undefined")
                 {
                     var cb  = new Date().getTime();
+
                     var url = 'http://' + asiAdserver +
                         '/rtbads/pq?adgroup=' + asiAdGroup +
                         '&blob=' + asiBlob +
@@ -83,18 +86,31 @@
 
                             var post =
                                 {
-                                    bid:  true,
-                                    blob: asiBlob
+                                    bid:     true,
+                                    blob:    asiBlob,
+                                    timings: []
                                 };
 
                             if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
                             {
-                                post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
+                                var pqlatency =
+                                    {
+                                        source:   'pq',
+                                        duration: asiPreQualEnd - asiPreQualStart
+                                    };
+
+                                post.timings.push(pqlatency);
                             }
 
                             if (typeof asiImpEnd != "undefined" && typeof asiImpStart != "undefined")
                             {
-                                post.implatency = [{duration: asiImpEnd - asiImpStart}];
+                                var implatency =
+                                    {
+                                        source:   'imp',
+                                        duration: asiImpEnd - asiImpStart
+                                    };
+
+                                post.timings.push(implatency);
                             }
 
                             postBackMetrics(
@@ -114,11 +130,21 @@
                 }
                 else
                 {
-                    var post = {nobid: true};
+                    var post =
+                        {
+                            nobid:   true,
+                            timings: []
+                        };
 
                     if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
                     {
-                        post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
+                        var pqlatency =
+                            {
+                                source:   'pq',
+                                duration: asiPreQualEnd - asiPreQualStart
+                            };
+
+                        post.timings.push(pqlatency);
                     }
 
                     postBackMetrics(
@@ -137,11 +163,21 @@
 
         if (typeof asiPlacement == "undefined")
         {
-            var post = {fail: true};
+            var post =
+                {
+                    fail:    true,
+                    timings: []
+                };
 
             if (typeof asiPreQualEnd != "undefined" && typeof asiPreQualStart != "undefined")
             {
-                post.pqlatency = {duration: asiPreQualEnd - asiPreQualStart};
+                var pqlatency =
+                    {
+                        source:   'pq',
+                        duration: asiPreQualEnd - asiPreQualStart
+                    };
+
+                post.timings.push(pqlatency);
             }
 
             postBackMetrics(

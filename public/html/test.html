@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Audience Science PQ example</title>
+<head>
+
+<body>
+
+<script type="text/javascript" language="JavaScript">
+    //name: John Pai Test (Direct_US) 
+    //created: 02/25/2015 14:42
+    var cb = new Date().getTime();
+    var asiPqTag = false;
+    try {
+        document.write("<sc" + "ript type='text/javascript' language='JavaScript' src='http://pq-direct.revsci.net/pql?placementIdList=ZD8qnz,mB9gxa,brhSZQ,EcGGi8&cb=" + cb + "'></sc" + "ript>");
+        console.log("Prequal request made");
+    } catch (err) {}
+</script>
+
+<!-- ASCI wrapped metrics tag -->
+<script type="text/javascript" language="JavaScript" src="http://d36r28hq1c1wt1.cloudfront.net"></script>
+
+<script type="text/javascript">
+console.log("PASIT Tag - I created a new variable 'asiVars' instead of using 'window'");
+
+var asiVars=[""];
+if (typeof asiPlacements != "undefined") {
+    for (var p in asiPlacements) {
+        asiVars.push(p);
+        asiVars[p] = "";
+        for (var key in asiPlacements[p].data) {
+            asiVars[p] += "PQ_" + p + "_" + key;
+        }
+    }
+}
+
+</script>
+
+
+<br>***<br>Here you would make a request to your Ad server with Placement ID (ZD8qnz).  In this example, you will be passing in using the new variable asiVar.<br>
+
+Response from Ad Server should look like the following:<br>
+
+
+
+<br> Here is the creative for the ZD8qnz Placement ID <br><br>
+<script type="text/javascript" language="JavaScript">
+var asiPlacements = asiPlacements || top.asiPlacements;
+var asiAdserver = asiAdserver || top.asiAdserver;
+document.write('<scri'+'pt type="text/javascript" src="http://' + asiAdserver + '/rtbads/pq?mode=s&placement=ZD8qnz&adgroup=' + asiPlacements['ZD8qnz']['default'].key + '&blob=' + asiPlacements['ZD8qnz'].blob + '&cachebuster=[CACHEBUSTER]&click=[CLICKTRACKER]"></scri'+'pt>');
+</script>
+
+<br> Here's the creative for the mB9gxa Placement ID <br><br>
+<script type="text/javascript" language="JavaScript">
+var asiPlacements = asiPlacements || top.asiPlacements;
+var asiAdserver = asiAdserver || top.asiAdserver;
+document.write('<scri'+'pt type="text/javascript" src="http://' + asiAdserver + '/rtbads/pq?mode=s&placement=mB9gxa&adgroup=' + asiPlacements['mB9gxa']['default'].key + '&blob=' + asiPlacements['mB9gxa'].blob + '&cachebuster=[CACHEBUSTER]&click=[CLICKTRACKER]"></scri'+'pt>');
+</script>
+
+<br> Here's the creative for the brhSZQ Placement ID <br><br>
+<script type="text/javascript" language="JavaScript">
+var asiPlacements = asiPlacements || top.asiPlacements;
+var asiAdserver = asiAdserver || top.asiAdserver;
+document.write('<scri'+'pt type="text/javascript" src="http://' + asiAdserver + '/rtbads/pq?mode=s&placement=brhSZQ&adgroup=' + asiPlacements['brhSZQ']['default'].key + '&blob=' + asiPlacements['brhSZQ'].blob + '&cachebuster=[CACHEBUSTER]&click=[CLICKTRACKER]"></scri'+'pt>');
+</script>
+
+<br> Here's the creative for the EcGGi8 Placement ID <br><br>
+<script type="text/javascript" language="JavaScript">
+var asiPlacements = asiPlacements || top.asiPlacements;
+var asiAdserver = asiAdserver || top.asiAdserver;
+document.write('<scri'+'pt type="text/javascript" src="http://' + asiAdserver + '/rtbads/pq?mode=s&placement=EcGGi8&adgroup=' + asiPlacements['EcGGi8']['default'].key + '&blob=' + asiPlacements['EcGGi8'].blob + '&cachebuster=[CACHEBUSTER]&click=[CLICKTRACKER]"></scri'+'pt>');
+</script>
+<br>Please contact me if you have any questions!  Thanks!
+<br>-JP
+</body>

@@ -114,7 +114,7 @@ if (Math.floor(Math.random() * 100) >= 0)  // TODO: SET SAMPLING RATE, CURRENTLY
 
             var http    = new XMLHttpRequest();
             var postStr = JSON.stringify(post);
-            http.open("POST", "http://localhost:3000/cnc", true); // TODO: SET METRICS SERVER URL
+            http.open("POST", "http://52.26.78.96/cnc", true); // TODO: SET METRICS SERVER URL
             http.setRequestHeader("Content-type", "application/json");
             http.send(postStr);
         },

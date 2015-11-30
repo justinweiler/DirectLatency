@@ -8,7 +8,7 @@
                         <tr><td><b>bids:</b></td><td>{{bid}}</td></tr>
                         <tr><td><b>nobids:</b></td><td>{{nobid}}</td></tr>
                         <tr><td><b>bid ratio:</b></td><td>{{ratio}}</td></tr>
-                        <tr><td><b>impressions:</b></td><td>{{impr}}</td></tr>
+                        <tr><td><b>impressions:</b></td><td>{{imp}}</td></tr>
                         <tr><td><b>fails:</b></td><td>{{fail}}</td></tr>
                         <tr><td><b>capturing:</b></td><td>{{capture}}</td></tr>
                     </table>
@@ -79,12 +79,12 @@
     var ratioData       = {{ratioData}};
     var bidData         = {{bidData}};
     var nobidData       = {{nobidData}};
-    var imprData        = {{imprData}};
+    var impData         = {{impData}};
     var failData        = {{failData}};
     var avgRatioData    = mav(ratioData, 18);
     var avgBidData      = mav(bidData, 18);
     var avgNobidData    = mav(nobidData, 18);
-    var avgImprData     = mav(imprData, 18);
+    var avgImpData      = mav(impData, 18);
 
     var bins = (function(){
         var ary  = [];
@@ -239,11 +239,11 @@
                 },
                 {
                     name: 'impressions',
-                    data: imprData
+                    data: impData
                 },
                 {
                     name: 'avg impressions',
-                    data: avgImprData
+                    data: avgImpData
                 },
                 {
                     name: 'fails',

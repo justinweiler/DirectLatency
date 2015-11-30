@@ -86,7 +86,7 @@ function aggregateState(aggregatedState, state, source, stripAspects)
     if (!source)
     {
         aggregatedState.bid     += state.bid;
-        aggregatedState.impr    += state.impr;
+        aggregatedState.imp     += state.imp;
         aggregatedState.nobid   += state.nobid;
         aggregatedState.fail    += state.fail;
     }
@@ -126,11 +126,11 @@ function aggregateState(aggregatedState, state, source, stripAspects)
                     aggregatedState.fail += stateDataSeries.data[j];
                 }
             }
-            else if (stateDataSeries.name == source + ':impr')
+            else if (stateDataSeries.name == source + ':imp')
             {
                 for (var j = 0; j < stateDataSeries.data.length; j++)
                 {
-                    aggregatedState.impr += stateDataSeries.data[j];
+                    aggregatedState.imp += stateDataSeries.data[j];
                 }
             }
         }
@@ -167,10 +167,10 @@ function aggregateState(aggregatedState, state, source, stripAspects)
 
 function resetState(state)
 {
-    state.bid       = 0;
-    state.impr       = 0;
-    state.nobid     = 0;
-    state.fail      = 0;
+    state.bid        = 0;
+    state.imp        = 0;
+    state.nobid      = 0;
+    state.fail       = 0;
     state.dataSeries = [];
 }
 
@@ -332,7 +332,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     var nobidData   = [];
     var bidData     = [];
     var failData    = [];
-    var imprData    = [];
+    var impData     = [];
     var ratioData   = [];
 
     // extract heat data for range
@@ -381,7 +381,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
         nobidData.push([chunkState.date, filteredState.nobid]);
         bidData.push([chunkState.date, filteredState.bid]);
         failData.push([chunkState.date, filteredState.fail]);
-        imprData.push([chunkState.date, filteredState.impr]);
+        impData.push([chunkState.date, filteredState.imp]);
 
         if (filteredState.bid || filteredState.nobid || filteredState.fail)
         {
@@ -409,7 +409,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     renderState.histoData   = JSON.stringify(renderState.dataSeries);
     renderState.nobidData   = JSON.stringify(nobidData);
     renderState.bidData     = JSON.stringify(bidData);
-    renderState.imprData    = JSON.stringify(imprData);
+    renderState.impData     = JSON.stringify(impData);
     renderState.failData    = JSON.stringify(failData);
     renderState.ratioData   = JSON.stringify(ratioData);
 
@@ -542,8 +542,8 @@ function postMetricsHandler(req, res)
 
         if (timing.source == 'imp')
         {
-            cumulative.impr++;
-            activeHeatState().impr++;
+            cumulative.imp++;
+            activeHeatState().imp++;
         }
         else if (timing.source == 'pq')
         {
@@ -680,7 +680,7 @@ function mockData(state, i, bid, nobid, fail)
 {
     state.bid   = bid + (i % 233);
     state.nobid = nobid + (i % 153);
-    state.impr  = state.bid;
+    state.imp   = state.bid;
     state.fail  = fail + (i % 13);
 
     var bidp = Math.floor(state.bid / 2);
@@ -689,8 +689,8 @@ function mockData(state, i, bid, nobid, fail)
     var nobidp = Math.floor(state.nobid / 2);
     var nobidx = state.nobid - nobidp;
 
-    var imprp = Math.floor(state.impr / 2);
-    var imprx = state.impr - imprp;
+    var impp = Math.floor(state.imp / 2);
+    var impx = state.imp - impp;
 
     var failp = Math.floor(state.fail / 2);
     var failx = state.fail - failp;
@@ -705,10 +705,10 @@ function mockData(state, i, bid, nobid, fail)
     createNewDataSeries(state, 'Canary-P:nobid:c').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
     createNewDataSeries(state, 'Canary-P:nobid:r').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
 
-    createNewDataSeries(state, 'Canary-P:impr').data[(2 +  Math.floor(i / 400)) % maxBins] = imprp;
-    createNewDataSeries(state, 'Canary-P:impr:d').data[(2 +  Math.floor(i / 400)) % maxBins] = imprp;
-    createNewDataSeries(state, 'Canary-P:impr:c').data[(2 +  Math.floor(i / 400)) % maxBins] = imprp;
-    createNewDataSeries(state, 'Canary-P:impr:r').data[(2 +  Math.floor(i / 400)) % maxBins] = imprp;
+    createNewDataSeries(state, 'Canary-P:imp').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
+    createNewDataSeries(state, 'Canary-P:imp:d').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
+    createNewDataSeries(state, 'Canary-P:imp:c').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
+    createNewDataSeries(state, 'Canary-P:imp:r').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
 
     createNewDataSeries(state, 'Canary-P:fail').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
     createNewDataSeries(state, 'Canary-P:fail:d').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
@@ -725,10 +725,10 @@ function mockData(state, i, bid, nobid, fail)
     createNewDataSeries(state, 'Canary-X:nobid:c').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
     createNewDataSeries(state, 'Canary-X:nobid:r').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
 
-    createNewDataSeries(state, 'Canary-X:impr').data[(6 +  Math.floor(i / 400)) % maxBins] = imprx;
-    createNewDataSeries(state, 'Canary-X:impr:d').data[(6 +  Math.floor(i / 400)) % maxBins] = imprx;
-    createNewDataSeries(state, 'Canary-X:impr:c').data[(6 +  Math.floor(i / 400)) % maxBins] = imprx;
-    createNewDataSeries(state, 'Canary-X:impr:r').data[(6 +  Math.floor(i / 400)) % maxBins] = imprx;
+    createNewDataSeries(state, 'Canary-X:imp').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
+    createNewDataSeries(state, 'Canary-X:imp:d').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
+    createNewDataSeries(state, 'Canary-X:imp:c').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
+    createNewDataSeries(state, 'Canary-X:imp:r').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
     
     createNewDataSeries(state, 'Canary-X:fail').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
     createNewDataSeries(state, 'Canary-X:fail:d').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;

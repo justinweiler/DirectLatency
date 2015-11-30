@@ -778,7 +778,6 @@ for (var i = heatRange - 1; i >= 0; i--)
     aggregateState(cumulative, state, undefined, false);
 }
 // TEST 1 ENDS
-*/
 
 // TEST 2 - POST HANDLER
 function mockDataPost(source, add)
@@ -858,5 +857,6 @@ router.get(
     }
 );
 // TEST 2 ENDS
+*/
 
 module.exports = router;

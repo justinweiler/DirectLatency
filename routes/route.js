@@ -8,13 +8,14 @@ var router = express.Router();
 var cumulative = createNewState();
 var heat = [];
 
-var chunkSize   = 10; // make sure this is evenly divisible into 60
-var binSize     = 20; // millisecond
-var maxBins     = 26;
-var maxDays     = 7;
-var hourChunks  = 60 / chunkSize;
-var heatRange   = maxDays * 24 * hourChunks;
-var timingsFile = './timings.json';
+var chunkSize        = 10; // make sure this is evenly divisible into 60
+var binSize          = 20; // millisecond
+var maxBins          = 26;
+var maxDays          = 7;
+var hourChunks       = 60 / chunkSize;
+var heatRange        = maxDays * 24 * hourChunks;
+var stripAspectsFlag = true;
+var timingsFile      = './timings.json';
 
 function getSeriesNames(state)
 {
@@ -283,7 +284,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     // use cumulative summary stats, start and end equal heat array bounds
     if (useCumulative)
     {
-        aggregateState(renderState, cumulative, undefined, true);
+        aggregateState(renderState, cumulative, undefined, stripAspectsFlag);
     }
     else
     {
@@ -328,6 +329,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
     renderState.seriesNames = [];
     renderState.heatData    = 'Date,Bin,Val\n';
     renderState.histosource = source || 'ALL';
+    renderState.showdetail  = !stripAspectsFlag;
 
     var nobidData   = [];
     var bidData     = [];
@@ -371,7 +373,7 @@ function getRenderStateData(dateStart, dateEnd, name, source)
             renderState.heatData += chunkState.date + ',' + j + ',' + normalChunkData[j] + '\n';
         }
 
-        var filteredState = aggregateState(createNewState(), chunkState, source, true);
+        var filteredState = aggregateState(createNewState(), chunkState, source, stripAspectsFlag);
 
         if (!useCumulative)
         {
@@ -620,6 +622,18 @@ function setNoCaptureHandler(req, res)
     res.redirect('/cnc/status');
 }
 
+function setDetailHandler(req, res)
+{
+    stripAspectsFlag = false;
+    res.redirect('/cnc/status');
+}
+
+function setNoDetailHandler(req, res)
+{
+    stripAspectsFlag = true;
+    res.redirect('/cnc/status');
+}
+
 //////////////////////
 
 capture();
@@ -658,6 +672,16 @@ router.get(
 router.get(
     '/nocapture',
     setNoCaptureHandler
+);
+
+router.get(
+    '/detail',
+    setDetailHandler
+);
+
+router.get(
+    '/nodetail',
+    setNoDetailHandler
 );
 
 router.get(
@@ -754,6 +778,7 @@ for (var i = heatRange - 1; i >= 0; i--)
     aggregateState(cumulative, state, undefined, false);
 }
 // TEST 1 ENDS
+*/
 
 // TEST 2 - POST HANDLER
 function mockDataPost(source, add)
@@ -828,10 +853,10 @@ router.get(
         var source = req.params.source;
         req.body = mockDataPost(source, Math.random() * 300);
         req.body.bid = true;
+        res.redirect('/cnc/status');
         postMetricsHandler(req, res);
     }
 );
 // TEST 2 ENDS
-*/
 
 module.exports = router;

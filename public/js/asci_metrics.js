@@ -1,4 +1,4 @@
-if (Math.floor(Math.random() * 100) >= 0)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
+if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTLY 1%
 {
     setTimeout(
         function ()

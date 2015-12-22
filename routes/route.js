@@ -234,7 +234,8 @@ function accumulateTrackedDataSeries(state, rootName, latencyRecord, blob, callb
     if (state.capture)
     {
         return fs.appendFile(
-            config.out, 
+            config.out,
+            (new Date()).toISOString() + ',' +
             rootName + ',' +
             JSON.stringify(latencyRecord) + ',' + 
             blob + '\n', 

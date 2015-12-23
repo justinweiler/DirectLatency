@@ -1,4 +1,4 @@
-if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
+if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
 {
     setTimeout(
         function ()
@@ -43,7 +43,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     pqlatency.duration = resourceList[i].duration;
                     pqlatency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     pqlatency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    pqlatency.response = resourceList[i].responseEnd - (resourceList[i].requestStart || resourceList[i].startTime);
+                    pqlatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    pqlatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     pqlatency.size = resourceList[i].transferSize;
                     post.timings.push(pqlatency);
                 }
@@ -53,7 +54,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     implatency.duration = resourceList[i].duration;
                     implatency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     implatency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    implatency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    implatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    implatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     implatency.size = resourceList[i].transferSize;
                     post.timings.push(implatency);
                 }
@@ -63,7 +65,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     jsplatency.duration = resourceList[i].duration;
                     jsplatency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     jsplatency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    jsplatency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    jsplatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    jsplatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     jsplatency.size = resourceList[i].transferSize;
                     post.timings.push(jsplatency);
                 }
@@ -73,7 +76,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     pix04latency.duration = resourceList[i].duration;
                     pix04latency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     pix04latency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    pix04latency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    pix04latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    pix04latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     pix04latency.size = resourceList[i].transferSize;
                     post.timings.push(pix04latency);
                 }
@@ -84,7 +88,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     sizmek_vast_latency.duration = resourceList[i].duration;
                     sizmek_vast_latency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     sizmek_vast_latency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    sizmek_vast_latency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    sizmek_vast_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    sizmek_vast_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_vast_latency.size = resourceList[i].transferSize;
                     post.timings.push(sizmek_vast_latency);
                 }
@@ -95,7 +100,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     sizmek_video_latency.duration = resourceList[i].duration;
                     sizmek_video_latency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     sizmek_video_latency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    sizmek_video_latency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    sizmek_video_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    sizmek_video_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_video_latency.size = resourceList[i].transferSize;
                     post.timings.push(sizmek_video_latency);
                 }
@@ -106,7 +112,8 @@ if (true)  // FOR FULL VERSION, SET SAMPLING RATE TO 100%
                     sizmek_vn_video_latency.duration = resourceList[i].duration;
                     sizmek_vn_video_latency.dns = resourceList[i].domainLookupEnd - resourceList[i].domainLookupStart;
                     sizmek_vn_video_latency.connection = resourceList[i].connectEnd - resourceList[i].connectStart;
-                    sizmek_vn_video_latency.response = resourceList[i].responseEnd - (resourceList[i].responseStart || resourceList[i].startTime);
+                    sizmek_vn_video_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
+                    sizmek_vn_video_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_vn_video_latency.size = resourceList[i].transferSize;
                     post.timings.push(sizmek_vn_video_latency);
                 }

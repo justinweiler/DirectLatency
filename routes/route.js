@@ -221,6 +221,7 @@ function accumulateTrackedDataSeries(state, rootName, latencyRecord, blob, callb
             case 'duration':    aspectName = rootName;          break;
             case 'dns':         aspectName = rootName + ':d';   break;
             case 'connection':  aspectName = rootName + ':c';   break;
+            case 'request':     aspectName = rootName + ':q';   break;
             case 'response':    aspectName = rootName + ':r';   break;
             default:                                            break;
         }
@@ -723,41 +724,49 @@ function mockData(state, i, bid, nobid, fail)
     createNewDataSeries(state, 'Canary-P:bid').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
     createNewDataSeries(state, 'Canary-P:bid:d').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
     createNewDataSeries(state, 'Canary-P:bid:c').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
+    createNewDataSeries(state, 'Canary-P:bid:q').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
     createNewDataSeries(state, 'Canary-P:bid:r').data[(0 +  Math.floor(i / 400)) % maxBins] = bidp;
 
     createNewDataSeries(state, 'Canary-P:nobid').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
     createNewDataSeries(state, 'Canary-P:nobid:d').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
     createNewDataSeries(state, 'Canary-P:nobid:c').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
+    createNewDataSeries(state, 'Canary-P:nobid:q').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
     createNewDataSeries(state, 'Canary-P:nobid:r').data[(1 +  Math.floor(i / 400)) % maxBins] = nobidp;
 
     createNewDataSeries(state, 'Canary-P:imp').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
     createNewDataSeries(state, 'Canary-P:imp:d').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
     createNewDataSeries(state, 'Canary-P:imp:c').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
+    createNewDataSeries(state, 'Canary-P:imp:q').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
     createNewDataSeries(state, 'Canary-P:imp:r').data[(2 +  Math.floor(i / 400)) % maxBins] = impp;
 
     createNewDataSeries(state, 'Canary-P:fail').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
     createNewDataSeries(state, 'Canary-P:fail:d').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
     createNewDataSeries(state, 'Canary-P:fail:c').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
+    createNewDataSeries(state, 'Canary-P:fail:q').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
     createNewDataSeries(state, 'Canary-P:fail:r').data[(3 +  Math.floor(i / 400)) % maxBins] = failp;
 
     createNewDataSeries(state, 'Canary-X:bid').data[(4 +  Math.floor(i / 400)) % maxBins] = bidx;
     createNewDataSeries(state, 'Canary-X:bid:d').data[(4 +  Math.floor(i / 400)) % maxBins] = bidx;
     createNewDataSeries(state, 'Canary-X:bid:c').data[(4 +  Math.floor(i / 400)) % maxBins] = bidx;
+    createNewDataSeries(state, 'Canary-X:bid:q').data[(4 +  Math.floor(i / 400)) % maxBins] = bidx;
     createNewDataSeries(state, 'Canary-X:bid:r').data[(4 +  Math.floor(i / 400)) % maxBins] = bidx;
 
     createNewDataSeries(state, 'Canary-X:nobid').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
     createNewDataSeries(state, 'Canary-X:nobid:d').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
     createNewDataSeries(state, 'Canary-X:nobid:c').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
+    createNewDataSeries(state, 'Canary-X:nobid:q').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
     createNewDataSeries(state, 'Canary-X:nobid:r').data[(5 +  Math.floor(i / 400)) % maxBins] = nobidx;
 
     createNewDataSeries(state, 'Canary-X:imp').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
     createNewDataSeries(state, 'Canary-X:imp:d').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
     createNewDataSeries(state, 'Canary-X:imp:c').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
+    createNewDataSeries(state, 'Canary-X:imp:q').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
     createNewDataSeries(state, 'Canary-X:imp:r').data[(6 +  Math.floor(i / 400)) % maxBins] = impx;
     
     createNewDataSeries(state, 'Canary-X:fail').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
     createNewDataSeries(state, 'Canary-X:fail:d').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
     createNewDataSeries(state, 'Canary-X:fail:c').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
+    createNewDataSeries(state, 'Canary-X:fail:q').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
     createNewDataSeries(state, 'Canary-X:fail:r').data[(7 +  Math.floor(i / 400)) % maxBins] = failx;
 
     return state;
@@ -788,57 +797,64 @@ function mockDataPost(source, add)
         timings: [
             {
                 source: 'pq',
-                duration: 100 + add,
+                duration: 180 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 80 + add,
                 size: 14
             },
             {
                 source: 'imp',
-                duration: 110 + add,
+                duration: 190 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 90 + add,
                 size: 14
             },
             {
                 source: 'js',
-                duration: 120 + add,
+                duration: 200 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 100 + add,
                 size: 14
             },
             {
                 source: 'pix04',
-                duration: 130 + add,
+                duration: 210 + add,
                 dns: 10,
                 connection: 20,
+                request: 80,
                 response: 100 + add,
                 size: 14
             },
             {
                 source: 'szmvs',
-                duration: 100 + add,
+                duration: 180 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 80 + add,
                 size: 14
             },
             {
                 source: 'szmvd',
-                duration: 50 + add,
+                duration: 130 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 30 + add,
                 size: 14
             },
             {
                 source: 'szmnvd',
-                duration: 60 + add,
+                duration: 140 + add,
                 dns: 10,
                 connection: 10,
+                request: 80,
                 response: 40 + add,
                 size: 14
             }

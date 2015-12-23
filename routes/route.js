@@ -253,7 +253,7 @@ function accumulateDataSeries(state, name, latency)
 {
     for (var i = 0; i < state.dataSeries.length; i++)
     {
-        if (name == state.dataSeries[i].name)
+        if (name == state.dataSeries[i].name && latency > 0)
         {
             var bin = Math.floor(latency / binSize);
 

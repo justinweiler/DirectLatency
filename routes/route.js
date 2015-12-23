@@ -251,9 +251,14 @@ function accumulateTrackedDataSeries(state, rootName, latencyRecord, blob, callb
 
 function accumulateDataSeries(state, name, latency)
 {
+    if (latency <= 0)
+    {
+        return;
+    }
+
     for (var i = 0; i < state.dataSeries.length; i++)
     {
-        if (name == state.dataSeries[i].name && latency > 0)
+        if (name == state.dataSeries[i].name)
         {
             var bin = Math.floor(latency / binSize);
 

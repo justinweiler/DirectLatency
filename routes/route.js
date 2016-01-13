@@ -9,8 +9,8 @@ var cumulative = createNewState();
 var heat = [];
 
 var chunkSize        = 10; // make sure this is evenly divisible into 60
-var binSize          = 20; // millisecond
-var maxBins          = 26;
+var binSize          = 250; // millisecond
+var maxBins          = 21;
 var maxDays          = 7;
 var hourChunks       = 60 / chunkSize;
 var heatRange        = maxDays * 24 * hourChunks;

@@ -1,9 +1,9 @@
-if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
+if (Math.floor(Math.random() * 100) >= 0)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
 {
     setTimeout(
         function ()
         {
-            var post = {source: 'Apac-1'}; // TODO: SET SOURCE ID
+            var post = {region: 'Apac-1', source: new URL(document.URL).hostname}; // TODO: SET REGION ID
 
             if (typeof asiPlacements != "undefined")
             {
@@ -34,6 +34,7 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
             post.timings = [];
 
             var resourceList = window.performance.getEntries();
+            var registeredPQ = false;
 
             for (var i = 0; i < resourceList.length; i++)
             {
@@ -46,7 +47,12 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     pqlatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     pqlatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     pqlatency.size = resourceList[i].transferSize;
-                    post.timings.push(pqlatency);
+
+                    if (pqlatency.duration)
+                    {
+                        registeredPQ = true;
+                        post.timings.push(pqlatency);
+                    }
                 }
                 else if (~resourceList[i].name.indexOf('imp.revsci.net')) // TODO: SET FILTERS
                 {
@@ -57,7 +63,11 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     implatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     implatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     implatency.size = resourceList[i].transferSize;
-                    post.timings.push(implatency);
+
+                    if (implatency.duration)
+                    {
+                        post.timings.push(implatency);
+                    }
                 }
                 else if (~resourceList[i].name.indexOf('js.revsci.net')) // TODO: SET FILTERS
                 {
@@ -68,7 +78,11 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     jsplatency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     jsplatency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     jsplatency.size = resourceList[i].transferSize;
-                    post.timings.push(jsplatency);
+
+                    if (jsplatency.duration)
+                    {
+                        post.timings.push(jsplatency);
+                    }
                 }
                 else if (~resourceList[i].name.indexOf('pix04.revsci.net')) // TODO: SET FILTERS
                 {
@@ -79,7 +93,11 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     pix04latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     pix04latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     pix04latency.size = resourceList[i].transferSize;
-                    post.timings.push(pix04latency);
+
+                    if (pix04latency.duration)
+                    {
+                        post.timings.push(pix04latency);
+                    }
                 }
                 // The following filter is specific to Sizmek
                 else if (~resourceList[i].name.indexOf('bs.serving-sys.com')) // TODO: SET FILTERS
@@ -91,7 +109,11 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     sizmek_vast_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     sizmek_vast_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_vast_latency.size = resourceList[i].transferSize;
-                    post.timings.push(sizmek_vast_latency);
+
+                    if (sizmek_vast_latency.duration)
+                    {
+                        post.timings.push(sizmek_vast_latency);
+                    }
                 }
                 // The following filter is specific to Sizmek
                 else if (~resourceList[i].name.indexOf('secure-ds.serving-sys.com')) // TODO: SET FILTERS
@@ -103,7 +125,11 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     sizmek_video_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     sizmek_video_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_video_latency.size = resourceList[i].transferSize;
-                    post.timings.push(sizmek_video_latency);
+
+                    if (sizmek_video_latency.duration)
+                    {
+                        post.timings.push(sizmek_video_latency);
+                    }
                 }
                 // The following filter is specific to Sizmek serving in Vietnam
                 else if (~resourceList[i].name.indexOf('ds-vn.serving-sys.com')) // TODO: SET FILTERS
@@ -115,15 +141,22 @@ if (true)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
                     sizmek_vn_video_latency.request = resourceList[i].responseStart - resourceList[i].requestStart;
                     sizmek_vn_video_latency.response = resourceList[i].responseEnd - resourceList[i].responseStart;
                     sizmek_vn_video_latency.size = resourceList[i].transferSize;
-                    post.timings.push(sizmek_vn_video_latency);
+
+                    if (sizmek_vn_video_latency.duration)
+                    {
+                        post.timings.push(sizmek_vn_video_latency);
+                    }
                 }
             }
 
-            var http    = new XMLHttpRequest();
-            var postStr = JSON.stringify(post);
-            http.open("POST", "http://52.26.78.96/cnc", true); // TODO: SET METRICS SERVER URL
-            http.setRequestHeader("Content-type", "application/json");
-            http.send(postStr);
+            if (registeredPQ && post.timings.length)
+            {
+                var http    = new XMLHttpRequest();
+                var postStr = JSON.stringify(post);
+                http.open("POST", "http://52.26.78.96/cnc", true); // TODO: SET METRICS SERVER URL
+                http.setRequestHeader("Content-type", "application/json");
+                http.send(postStr);
+            }
         },
         5000
     );

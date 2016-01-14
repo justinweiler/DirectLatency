@@ -95,6 +95,6 @@ if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTL
                 http.send(postStr);
             }
         },
-        5000
+        6000
     );
 }

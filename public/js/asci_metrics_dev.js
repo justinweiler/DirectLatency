@@ -1,4 +1,4 @@
-if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTLY 1%
+if (Math.floor(Math.random() * 100) >= 0)  // TODO: SET SAMPLING RATE, CURRENTLY 100%
 {
     setTimeout(
         function ()
@@ -35,7 +35,7 @@ if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTL
 
             var resourceList = window.performance.getEntries();
             var registeredPQ = false;
-            
+
             // TODO: Edit filters
             var domains = [
                 {filter: 'pq-direct.revsci.net',        source: 'pq'},      // ASCI pre-qual (do not delete this)
@@ -77,10 +77,10 @@ if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTL
                             {
                                 registeredPQ = true;
                             }
-                            
+
                             post.timings.push(timing);
                         }
-                        
+
                         break;
                     }
                 }
@@ -90,7 +90,8 @@ if (Math.floor(Math.random() * 100) == 42)  // TODO: SET SAMPLING RATE, CURRENTL
             {
                 var http    = new XMLHttpRequest();
                 var postStr = JSON.stringify(post);
-                http.open("POST", "http://52.26.78.96/cnc", true); // TODO: SET METRICS SERVER URL
+                //http.open("POST", "http://52.26.78.96/cnc", true);
+                http.open("POST", "http://127.0.0.1:3000/cnc", true); // TODO: SET METRICS SERVER URL
                 http.setRequestHeader("Content-type", "application/json");
                 http.send(postStr);
             }

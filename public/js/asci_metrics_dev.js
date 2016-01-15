@@ -52,7 +52,7 @@ if (Math.floor(Math.random() * 100) >= 0)  // TODO: SET SAMPLING RATE, CURRENTLY
             for (var i = 0; i < resourceList.length; i++)
             {
                 var resource = resourceList[i];
-                var resourceHost = new URL(resource.name).hostname;
+                var resourceHost = new URL(resource.name).hostname || post.source || 'unknown';
 
                 for (var d = 0; d < domains.length; d++)
                 {

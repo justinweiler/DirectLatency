@@ -516,6 +516,13 @@ function postMetricsHandler(req, res)
 {
     var result;
 
+    // TEMPORARY!!!!
+    // ignore old scripts
+    if (req.body.source == 'Apac-1')
+    {
+        return res.end();
+    }
+
     // increment state statistics
     if (req.body.bid)
     {

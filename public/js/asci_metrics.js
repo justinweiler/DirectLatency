@@ -3,7 +3,7 @@ if (Math.floor(Math.random() * 100) < 10)  // TODO: SET SAMPLING RATE, CURRENTLY
     setTimeout(
         function ()
         {
-            var post = {region: 'Apac-1', source: 'Apac-1#' + new URL(document.URL).hostname}; // TODO: SET REGION ID
+            var post = {region: 'Apac-1', source: 'Apac-1_' + new URL(document.URL).hostname}; // TODO: SET REGION ID
 
             if (typeof asiPlacements != "undefined")
             {

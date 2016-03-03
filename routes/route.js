@@ -516,8 +516,7 @@ function postMetricsHandler(req, res)
 {
     var result;
 
-    // Apac-1 filter is TEMPORARY!!!!
-    if (!req.body.source || req.body.source == 'Apac-1')
+    if (!req.body.source)
     {
         return res.end();
     }
